@@ -2,40 +2,36 @@ import cv2
 import numpy as np
 import time
 import math
-
 from config import FRAME_WIDTH, FRAME_HEIGHT, BOTTOM_Y_PERCENTAGE
 from step1_preprocessing import process_frame
 from step2_dynamic_roi import process_dynamic_roi
 from step3_birdseye_view import process_birdseye_view 
 from step4_5_lane_detection import LaneTracker, get_histogram_peaks, sliding_window, search_around_poly, fit_polynomial
 from step6_display import measure_curvature_and_offset, draw_lane_and_hud
-from step7_pid_control import PIDController
 
 def main():
-    cap = cv2.VideoCapture('test_videos/test10.mp4') #thay đổi video input tại đây
+    cap = cv2.VideoCapture('test_videos/test3.mp4') # Thay đổi video input tại đây
     fps = cap.get(cv2.CAP_PROP_FPS) 
-    if fps == 0 or math.isnan(fps): fps = 30.0
+    if fps == 0 or math.isnan(fps): 
+        fps = 30.0
+        
     fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
     out_video = cv2.VideoWriter('adas_final_output.mp4', fourcc, fps, (FRAME_WIDTH, FRAME_HEIGHT))
-
+    
     fps_history = []
     prev_vp = None
     view_mode = ord('9') 
-    frame_count = 0 # Bổ sung biến đếm khung hình
-
+    frame_count = 0
+    
     left_tracker = LaneTracker()
     right_tracker = LaneTracker()
-
     warning_hold_frames = 0
     last_warning_dir = "Unknown"
-
-    pid = PIDController(Kp=100.0, Ki=0.0, Kd=50.0) 
-    BASE_MOTOR_SPEED = 40  # Tốc độ cố định 40% PWM
-
+    
     print("==================================================")
-    print("🚀 BẮT ĐẦU CHẠY MÔ PHỎNG LKA TRÊN MÁY TÍNH (MAIN.PY)")
+    print("🚀 BẮT ĐẦU CHẠY MÔ PHỎNG LDW TRÊN MÁY TÍNH (MAIN.PY)")
     print("==================================================")
-
+    
     while True:
         ret, frame = cap.read()
         if not ret: 
@@ -45,8 +41,10 @@ def main():
         start_time = time.perf_counter()
         frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
         
+        # Bước 1: Tiền xử lý ảnh
         final_mask, gamma_val, mean_bright, roi_rect = process_frame(frame)
         
+        # Bước 2: Xác định vùng ROI động theo điểm tụ (Vanishing Point)
         polygon, current_vp, lines, masked_edges = process_dynamic_roi(
             binary_mask=final_mask, 
             prev_vp=prev_vp, 
@@ -55,14 +53,15 @@ def main():
             bottom_y_percentage=BOTTOM_Y_PERCENTAGE
         )
         prev_vp = current_vp
-
+        
+        # Bước 3: Biến đổi phối cảnh Bird's Eye View (BEV)
         black_mask = np.zeros_like(final_mask)
         cv2.fillPoly(black_mask, [polygon], 255)
         clean_roi_mask = cv2.bitwise_and(final_mask, black_mask)
         warped_binary, M, Minv = process_birdseye_view(clean_roi_mask, polygon)
-
-        use_sliding_window = True
         
+        # Bước 4 & 5: Phát hiện và bám vết làn đường (Sliding Window + RANSAC + Tracker)
+        use_sliding_window = True
         if left_tracker.best_fit is not None and right_tracker.best_fit is not None:
             leftx, lefty, rightx, righty, pixel_img = search_around_poly(
                 warped_binary, left_tracker.best_fit, right_tracker.best_fit
@@ -72,41 +71,28 @@ def main():
             else:
                 left_tracker = LaneTracker() 
                 right_tracker = LaneTracker()
-
+                
         if use_sliding_window:
             hist, leftx_base, rightx_base = get_histogram_peaks(warped_binary)
             leftx, lefty, rightx, righty, pixel_img = sliding_window(warped_binary, leftx_base, rightx_base)
-
+            
         left_fit_smooth, right_fit_smooth, left_fitx, right_fitx, ploty, tracked_img = fit_polynomial(
             FRAME_HEIGHT, leftx, lefty, rightx, righty, pixel_img, left_tracker, right_tracker
         )
-
+        
+        # Phát hiện chuyển làn (Reset tracker khi xe đi qua vạch)
         if left_fit_smooth is not None and right_fit_smooth is not None:
             l_bot_x = left_fit_smooth[0]*FRAME_HEIGHT**2 + left_fit_smooth[1]*FRAME_HEIGHT + left_fit_smooth[2]
             r_bot_x = right_fit_smooth[0]*FRAME_HEIGHT**2 + right_fit_smooth[1]*FRAME_HEIGHT + right_fit_smooth[2]
-            
             center_x = FRAME_WIDTH / 2
             lane_width_px = r_bot_x - l_bot_x
             margin = lane_width_px * 0.4  
-            
             if l_bot_x > (center_x + margin) or r_bot_x < (center_x - margin):
                 left_tracker = LaneTracker()   
                 right_tracker = LaneTracker()  
-
+                
+        # Bước 6: Tính toán độ cong, độ lệch tâm và hiển thị cảnh báo
         curvature, offset_m, direction, is_departure = measure_curvature_and_offset(left_fit_smooth, right_fit_smooth)
-
-        steering_angle = 90
-        motor_speed = 0
-
-        if direction == "Unknown":
-            # Failsafe: Mất vạch kẻ đường -> Dừng xe, đưa vô lăng về giữa và xóa nhớ PID
-            pid.reset()
-            steering_angle = 90
-            motor_speed = 0
-        else:
-            # Xe nhận diện được đường -> Chạy tốc độ cố định và bẻ lái tự động
-            steering_angle = pid.compute(offset_m, direction)
-            motor_speed = BASE_MOTOR_SPEED
         
         if is_departure:
             warning_hold_frames = 40
@@ -115,20 +101,14 @@ def main():
             is_departure = True
             direction = last_warning_dir
             warning_hold_frames -= 1
-
+            
         final_hud_img = draw_lane_and_hud(
             frame, warped_binary, left_fit_smooth, right_fit_smooth, 
             Minv, curvature, offset_m, direction, is_departure
         )
-
-        # --- BỔ SUNG: Vẽ thông số Điều khiển LKA lên màn hình HUD ---
-        lka_text = f"CMD | Steering: {steering_angle} deg | Speed: {motor_speed}%"
-        cv2.putText(final_hud_img, lka_text, (20, FRAME_HEIGHT - 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
-        cv2.putText(final_hud_img, lka_text, (20, FRAME_HEIGHT - 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        # -------------------------------------------------------------
-
+        
+        # Chuyển đổi các chế độ xem (Phím 0 -> 9)
         display_frame = None
-
         if view_mode == ord('0'):
             display_frame = frame.copy()
             x1, y1, x2, y2 = roi_rect
@@ -170,41 +150,37 @@ def main():
         else: 
             display_frame = final_hud_img 
             cv2.putText(display_frame, "9. Final LDW Output", (20, FRAME_HEIGHT - 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
+            
+        # Tính toán và hiển thị FPS & Luma/Gamma
         end_time = time.perf_counter()
         time_diff = end_time - start_time
         current_fps = 1.0 / time_diff if time_diff > 0 else 0
-        
         fps_history.append(current_fps)
         if len(fps_history) > 10: 
             fps_history.pop(0)
         smoothed_fps = sum(fps_history) / len(fps_history)
-
-        fps_text = f"FPS: {smoothed_fps:.1f}"
         
-        (text_width, text_height), _ = cv2.getTextSize(fps_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+        fps_text = f"FPS: {smoothed_fps:.1f}"
+        (text_width, _), _ = cv2.getTextSize(fps_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
         fps_x = FRAME_WIDTH - text_width - 20
         fps_y = 40
-        
         cv2.putText(final_hud_img, fps_text, (fps_x, fps_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
         cv2.putText(final_hud_img, fps_text, (fps_x, fps_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
+        
         info_text = f"Luma: {mean_bright:.1f} | Gamma: {gamma_val:.2f}"
         cv2.putText(final_hud_img, info_text, (20, FRAME_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3)
         cv2.putText(final_hud_img, info_text, (20, FRAME_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-
-        # --- BỔ SUNG: In thông số Log ra Terminal mỗi 15 khung hình ---
-        if frame_count % 15 == 0:
-            print(f"⏳ Frame {frame_count:04d} | Độ lệch: {offset_m:.2f}m {direction} | Góc Servo: {steering_angle}° | Tốc độ: {motor_speed}%")
-        # --------------------------------------------------------------
-
-        cv2.imshow("ADAS Project", display_frame)
         
-        #ghi vào video
+        # In thông số Log ra Terminal mỗi 15 khung hình
+        if frame_count % 15 == 0:
+            rad_str = f"{curvature:.0f}m" if curvature is not None else "Unknown"
+            status = "WARN" if is_departure else "OK"
+            print(f"⏳ Frame {frame_count:04d} | Radius: {rad_str} | Độ lệch: {offset_m:.2f}m ({direction}) | Status: {status} | FPS: {smoothed_fps:.1f}")
+            
+        cv2.imshow("ADAS LDW Project", display_frame)
         out_video.write(display_frame)
         
         key = cv2.waitKey(1) & 0xFF
-        
         if key == ord('q'): 
             break
         elif key in [ord(str(i)) for i in range(10)]: 
@@ -212,13 +188,12 @@ def main():
         elif key == ord('s') or key == ord('S'):
             filename = f"screenshot_mode_{chr(view_mode)}.jpg"
             cv2.imwrite(filename, display_frame)
-            print(f"File duoc luu: {filename}")
-
+            print(f"📸 Đã lưu ảnh chụp màn hình: {filename}")
+            
     cap.release()
     out_video.release()
     cv2.destroyAllWindows()
-    
-    print("Luu video vao file: adas_final_output.mp4")
+    print("📁 Đã lưu video đầu ra tại: adas_final_output.mp4")
 
 if __name__ == "__main__":
     main()

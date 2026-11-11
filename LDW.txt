@@ -1,0 +1,3822 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+The content has been processed where empty lines have been removed.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Empty lines have been removed from all files
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+img/
+  output.gif
+pipeline/
+  config.py
+  main_pi.py
+  main.py
+  step1_preprocessing.py
+  step2_dynamic_roi.py
+  step3_birdseye_view.py
+  step4_5_lane_detection.py
+  step6_display.py
+test_videos/
+  main_test/
+    b1.mp4
+    bongcay.mp4
+    chuyenlan1.mp4
+    test10.mp4
+    VIDEO_GOC.mp4
+  sub_tests (for experiment purposes)/
+    highway_1024_512.mp4
+    highway_normal.mp4
+    night.mp4
+    night1.mp4
+    project_video.mp4
+    SpeedBumps.mp4
+    test1.mp4
+    test11.mp4
+    test111.mp4
+    test2.mp4
+    test3.mp4
+    test4.1.mp4
+    test4.mp4
+    test5.mp4
+    test6.mp4
+    test7.mp4
+    test8.mp4
+    test9.mp4
+    tusimple_output.mp4
+testing_code/
+  base_mask_tuner.py
+  BEV_simulation
+  hls_tuner.py
+  pid_testing.py
+  ROI
+  ROI simulation
+  ROI_tuner.py
+.gitignore
+adas_final_output.mp4
+adas_final_output1.mp4
+adas_optimized_output.mp4
+pi_adas_log.csv
+pi_final_output.mp4
+pi_simulation_output.avi
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="pipeline/config.py">
+FRAME_WIDTH = 640
+FRAME_HEIGHT = 360
+BOTTOM_Y_PERCENTAGE = 0.95        #đáy của ROI
+#Base mask
+BASE_MASK_HORIZON_RATIO = 0.6
+BASE_MASK_BOT_LEFT_RATIO = 0.14
+BASE_MASK_BOT_RIGHT_RATIO = 0.92
+DYNAMIC_BASE_MASK_TOP_HALF_WIDTH = 43
+#Lọc canny và hough
+CANNY_LOW_THRESH = 50             # Ngưỡng dưới của Canny
+CANNY_HIGH_THRESH = 150           # Ngưỡng trên của Canny
+HOUGH_THRESHOLD = 40              # Số điểm ảnh tối thiểu để tạo thành đường thẳng
+HOUGH_MIN_LINE_LEN = 30           # Chiều dài tối thiểu của một vạch kẻ đường
+HOUGH_MAX_LINE_GAP = 40           # Khoảng cách tối đa để nối 2 đoạn vạch đứt
+#Lọc và làm mượt điểm tụ
+MIN_SLOPE = 0.5                   # Độ dốc tối thiểu để không nhận diện nhầm vạch ngang
+MAX_SLOPE = 2.5                   # Độ dốc tối đa để không nhận diện nhầm lề dọc
+LEFT_LANE_MAX_X_RATIO = 0.65      # Giới hạn vùng tìm vạch trái
+RIGHT_LANE_MIN_X_RATIO = 0.35     # Giới hạn vùng tìm vạch phải
+VP_SMOOTH_MAX_ALPHA = 0.8         # Hệ số bám đuổi tối đa (khi điểm tụ dịch chuyển mạnh)
+VP_SMOOTH_MIN_ALPHA = 0.05        # Hệ số bám đuổi tối thiểu (khi xe chạy ổn định)
+VP_SMOOTH_DIST_SCALE = 200.0      # Thang đo khoảng cách để điều chỉnh alpha
+#Dynamic ROI
+FALLBACK_VP_Y_RATIO = 0.80        # Vị trí điểm tụ giả định nếu mất dấu (80% chiều cao)
+ROI_OFFSET_Y = 25
+ROI_TOP_HALF_WIDTH = 45
+ROI_BOTTOM_OFFSET_LEFT = 210
+ROI_BOTTOM_OFFSET_RIGHT = 210
+BEV_DST_OFFSET_X = 200
+#Sliding Window
+SLIDING_WINDOW_N = 5              # Số lượng cửa sổ xếp chồng lên nhau
+SLIDING_WINDOW_MARGIN = 30        # Khoảng cách từ tâm cửa sổ ra mỗi bên
+SLIDING_WINDOW_MINPIX = 25        # Số điểm sáng tối thiểu để cập nhật lại tâm cửa sổ mới
+SEARCH_AROUND_MARGIN = 40         # Phạm vi tìm kiếm pixel bao quanh vạch đường của khung hình trước
+#RANSAC
+RANSAC_MAX_ITERS = 10         # Số vòng lặp lấy mẫu ngẫu nhiên để tìm đường cong chuẩn nhất
+RANSAC_THRESHOLD = 12.0           # Sai số tối đa (pixel) để 1 điểm được coi là thuộc vạch kẻ đường
+RANSAC_MIN_POINTS = 10            # Số lượng pixel tối thiểu lọt vào cửa sổ thì mới nội suy phương trình
+RANSAC_MAX_A_COEFF = 0.001        # Hệ số cong A tối đa cho phép để loại bỏ các đường cong quá cong
+#Tracking
+TRACKING_SMOOTH_FACTOR = 7        # Số khung hình ghi nhớ trong bộ đệm để lấy trung bình cộng
+TRACKING_MAX_A_DIFF = 0.001       # Độ lệch độ cong A tối đa cho phép giữa 2 khung hình liên tiếp để chống giật
+#Quy đổi pixel sang mét
+YM_PER_PIX = 30.0 / FRAME_HEIGHT  # khung hình camera nhìn được đoạn đường dài 30m
+XM_PER_PIX = 3.7 / 700.0          # Chuẩn làn đường quốc tế rộng 3.7m -> tương đương 700 pixel trên BEV
+LDW_WARNING_THRESHOLD = 0.4       # Ngưỡng lệch tâm an toàn (mét). Quá 0.4m sẽ báo động đỏ
+</file>
+
+<file path="pipeline/main_pi.py">
+import cv2
+import numpy as np
+import time
+import csv
+import math
+from threading import Thread
+from queue import Queue
+# IMPORT CẤU HÌNH CHUNG
+from config import FRAME_WIDTH, FRAME_HEIGHT, BOTTOM_Y_PERCENTAGE
+# IMPORT CÁC MODULE THUẬT TOÁN
+from step1_preprocessing import process_frame
+from step2_dynamic_roi import process_dynamic_roi
+from step3_birdseye_view import process_birdseye_view 
+from step4_5_lane_detection import LaneTracker, get_histogram_peaks, sliding_window, search_around_poly, fit_polynomial
+from step6_display import measure_curvature_and_offset, draw_lane_and_hud
+# ==========================================
+# LUỒNG 1: ĐỌC VIDEO ĐẦU VÀO (PRODUCER)
+# ==========================================
+class ThreadedVideo:
+    def __init__(self, path, queue_size=64):
+        self.stream = cv2.VideoCapture(path)
+        self.Q = Queue(maxsize=queue_size)
+        self.stopped = False
+    def start(self):
+        t = Thread(target=self.update, args=())
+        t.daemon = True
+        t.start()
+        return self
+    def update(self):
+        while True:
+            if self.stopped:
+                return
+            if not self.Q.full():
+                ret, frame = self.stream.read()
+                if not ret:
+                    self.stop()
+                    return
+                self.Q.put(frame)
+            else:
+                time.sleep(0.01)
+    def read(self):
+        return self.Q.get()
+    def more(self):
+        return self.Q.qsize() > 0 or not self.stopped
+    def stop(self):
+        self.stopped = True
+        self.stream.release()
+# ==========================================
+# LUỒNG 3: GHI VIDEO ĐẦU RA (CONSUMER)
+# ==========================================
+class ThreadedWriter:
+    def __init__(self, filename, fourcc, fps, frame_size, queue_size=64):
+        self.writer = cv2.VideoWriter(filename, fourcc, fps, frame_size)
+        self.Q = Queue(maxsize=queue_size)
+        self.stopped = False
+        self.thread = None
+    def start(self):
+        self.thread = Thread(target=self.update, args=())
+        self.thread.daemon = True
+        self.thread.start()
+        return self
+    def update(self):
+        while True:
+            if self.stopped and self.Q.empty():
+                break
+            if not self.Q.empty():
+                frame = self.Q.get()
+                self.writer.write(frame)
+            else:
+                time.sleep(0.01)
+        self.writer.release()
+    def write(self, frame):
+        self.Q.put(frame)
+    def stop(self):
+        self.stopped = True
+        if self.thread is not None:
+            self.thread.join()
+# ==========================================
+# LUỒNG 2: HÀM CHẠY CHÍNH (MAIN THREAD - BỘ NÃO)
+# ==========================================
+def main():
+    video_path = 'test_videos/test10.mp4' 
+    print("==================================================")
+    print("🚀 BẮT ĐẦU CHẠY ADAS TRÊN RASPBERRY PI (HEADLESS MODE)")
+    print("✨ KIẾN TRÚC 3 LUỒNG + BỘ ĐẾM DUY TRÌ CẢNH BÁO")
+    print("==================================================")
+    # KÍCH HOẠT LUỒNG ĐỌC
+    print("⏳ Đang khởi động Luồng 1 (Đọc video)...")
+    cap = ThreadedVideo(video_path).start()
+    time.sleep(1.0) 
+    if not cap.more():
+        print(f"❌ LỖI: Không thể mở file video '{video_path}'")
+        return
+    # KÍCH HOẠT LUỒNG GHI
+    print("⏳ Đang khởi động Luồng 3 (Ghi thẻ nhớ)...")
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out_filename = 'pi_final_output.mp4'
+    # Gắn cứng 30 FPS cho chuẩn video xuất ra trên Pi
+    writer = ThreadedWriter(out_filename, fourcc, 30.0, (FRAME_WIDTH, FRAME_HEIGHT)).start()
+    # KHỞI TẠO CÁC BIẾN HỆ THỐNG
+    prev_vp = None
+    left_tracker = LaneTracker()
+    right_tracker = LaneTracker()
+    system_logs = []  
+    frame_count = 0
+    start_sim_time = time.time()
+    # BIẾN QUẢN LÝ DUY TRÌ CẢNH BÁO (ĐỒNG BỘ 1:1 VỚI MAIN.PY)
+    warning_hold_frames = 0
+    last_warning_dir = "Unknown"
+    print(f"🎬 Đang xử lý dữ liệu ở tốc độ cao nhất (Không mở giao diện đồ họa)...")
+    print("==================================================")
+    # VÒNG LẶP CHÍNH CỦA BỘ NÃO
+    while cap.more():
+        frame = cap.read()
+        if frame is None: 
+            break 
+        frame_start_time = time.time() 
+        frame_count += 1
+        frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
+        # --- ĐƯỜNG ỐNG THUẬT TOÁN ---
+        final_mask, gamma_val, mean_bright, roi_rect = process_frame(frame)
+        polygon, current_vp, lines, masked_edges = process_dynamic_roi(
+            binary_mask=final_mask, prev_vp=prev_vp, 
+            frame_width=FRAME_WIDTH, frame_height=FRAME_HEIGHT,
+            bottom_y_percentage=BOTTOM_Y_PERCENTAGE
+        )
+        prev_vp = current_vp
+        black_mask = np.zeros_like(final_mask)
+        cv2.fillPoly(black_mask, [polygon], 255)
+        clean_roi_mask = cv2.bitwise_and(final_mask, black_mask)
+        warped_binary, M, Minv = process_birdseye_view(clean_roi_mask, polygon)
+        use_sliding_window = True
+        if left_tracker.best_fit is not None and right_tracker.best_fit is not None:
+            leftx, lefty, rightx, righty, pixel_img = search_around_poly(
+                warped_binary, left_tracker.best_fit, right_tracker.best_fit
+            )
+            if len(leftx) > 25 and len(rightx) > 25:
+                use_sliding_window = False
+            else:
+                left_tracker = LaneTracker() 
+                right_tracker = LaneTracker()
+        if use_sliding_window:
+            hist, leftx_base, rightx_base = get_histogram_peaks(warped_binary)
+            leftx, lefty, rightx, righty, pixel_img = sliding_window(warped_binary, leftx_base, rightx_base)
+        left_fit_smooth, right_fit_smooth, left_fitx, right_fitx, ploty, tracked_img = fit_polynomial(
+            FRAME_HEIGHT, leftx, lefty, rightx, righty, pixel_img, left_tracker, right_tracker
+        )
+        # PHÁT HIỆN CHUYỂN LÀN VỚI VÙNG ĐỆM MARGIN (ĐỒNG BỘ VỚI MAIN.PY)
+        if left_fit_smooth is not None and right_fit_smooth is not None:
+            l_bot_x = left_fit_smooth[0]*FRAME_HEIGHT**2 + left_fit_smooth[1]*FRAME_HEIGHT + left_fit_smooth[2]
+            r_bot_x = right_fit_smooth[0]*FRAME_HEIGHT**2 + right_fit_smooth[1]*FRAME_HEIGHT + right_fit_smooth[2]
+            center_x = FRAME_WIDTH / 2
+            lane_width_px = r_bot_x - l_bot_x
+            margin = lane_width_px * 0.4  
+            if l_bot_x > (center_x + margin) or r_bot_x < (center_x - margin):
+                left_tracker = LaneTracker()   
+                right_tracker = LaneTracker()  
+        # TÍNH TOÁN VẬT LÝ
+        curvature, offset_m, direction, is_departure = measure_curvature_and_offset(left_fit_smooth, right_fit_smooth)
+        # LOGIC KÉO DÀI THỜI GIAN CẢNH BÁO (WARNING HOLD)
+        if is_departure:
+            warning_hold_frames = 40
+            last_warning_dir = direction
+        elif warning_hold_frames > 0:
+            is_departure = True
+            direction = last_warning_dir
+            warning_hold_frames -= 1
+        # VẼ HUD (Đúng 9 tham số chuẩn của file step6_display.py)
+        final_hud_img = draw_lane_and_hud(
+            frame, warped_binary, left_fit_smooth, right_fit_smooth, 
+            Minv, curvature, offset_m, direction, is_departure
+        )
+        # --- GHI KẾT QUẢ VÀO VIDEO VÀ RAM ---
+        writer.write(final_hud_img)
+        process_time_ms = (time.time() - frame_start_time) * 1000 
+        instant_fps = 1000.0 / process_time_ms if process_time_ms > 0 else 0
+        rad_val = curvature if curvature is not None else -1
+        system_logs.append([frame_count, round(instant_fps, 1), round(rad_val, 1), round(offset_m, 2), direction])
+        if frame_count % 30 == 0:
+            rad_str = f"{curvature:.0f}m" if curvature is not None else "Unknown"
+            status = "WARN" if is_departure else "OK"
+            print(f"⏳ Frame {frame_count:04d} | Radius: {rad_str} | Offset: {offset_m:.2f}m {direction} | Status: {status} | CPU Time: {process_time_ms:.1f}ms")
+    # ==========================================
+    # DỌN DẸP TÀI NGUYÊN VÀ TỔNG KẾT
+    # ==========================================
+    print("==================================================")
+    print("⏳ Đang dọn dẹp bộ nhớ và ghi Log xuống thẻ SD. Vui lòng đợi...")
+    cap.stop()
+    writer.stop() 
+    # Xả dữ liệu từ RAM xuống file CSV
+    csv_filename = "pi_adas_log.csv"
+    with open(csv_filename, mode='w', newline='') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow(['Frame_ID', 'Instant_FPS', 'Radius_m', 'Offset_m', 'Direction'])
+        csv_writer.writerows(system_logs)
+    total_time = time.time() - start_sim_time
+    avg_fps = frame_count / (total_time - 1.0) 
+    print("🎉 QUÁ TRÌNH CHẠY TRÊN PI HOÀN TẤT THÀNH CÔNG!")
+    print(f"📊 Tổng số khung hình: {frame_count} frames")
+    print(f"⚡ TỐC ĐỘ FPS TRUNG BÌNH THỰC TẾ: {avg_fps:.1f} FPS")
+    print(f"📁 Video lưu tại: {out_filename}")
+    print(f"📝 File Log lưu tại: {csv_filename}")
+    print("==================================================")
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="pipeline/main.py">
+import cv2
+import numpy as np
+import time
+import math
+from config import FRAME_WIDTH, FRAME_HEIGHT, BOTTOM_Y_PERCENTAGE
+from step1_preprocessing import process_frame
+from step2_dynamic_roi import process_dynamic_roi
+from step3_birdseye_view import process_birdseye_view 
+from step4_5_lane_detection import LaneTracker, get_histogram_peaks, sliding_window, search_around_poly, fit_polynomial
+from step6_display import measure_curvature_and_offset, draw_lane_and_hud
+def main():
+    cap = cv2.VideoCapture('test_videos/main_test/test10.mp4') #thay đổi video input tại đây
+    fps = cap.get(cv2.CAP_PROP_FPS) 
+    if fps == 0 or math.isnan(fps): fps = 30.0
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+    out_video = cv2.VideoWriter('adas_final_output.mp4', fourcc, fps, (FRAME_WIDTH, FRAME_HEIGHT))
+    fps_history = []
+    prev_vp = None
+    view_mode = ord('9') 
+    frame_count = 0 # Bổ sung biến đếm khung hình
+    left_tracker = LaneTracker()
+    right_tracker = LaneTracker()
+    warning_hold_frames = 0
+    last_warning_dir = "Unknown"
+    BASE_MOTOR_SPEED = 40  # Tốc độ cố định 40% PWM
+    print("==================================================")
+    print("🚀 BẮT ĐẦU CHẠY MÔ PHỎNG LKA TRÊN MÁY TÍNH (MAIN.PY)")
+    print("==================================================")
+    while True:
+        ret, frame = cap.read()
+        if not ret: 
+            break
+        frame_count += 1
+        start_time = time.perf_counter()
+        frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
+        final_mask, gamma_val, mean_bright, roi_rect = process_frame(frame)
+        polygon, current_vp, lines, masked_edges = process_dynamic_roi(
+            binary_mask=final_mask, 
+            prev_vp=prev_vp, 
+            frame_width=FRAME_WIDTH, 
+            frame_height=FRAME_HEIGHT,
+            bottom_y_percentage=BOTTOM_Y_PERCENTAGE
+        )
+        prev_vp = current_vp
+        black_mask = np.zeros_like(final_mask)
+        cv2.fillPoly(black_mask, [polygon], 255)
+        clean_roi_mask = cv2.bitwise_and(final_mask, black_mask)
+        warped_binary, M, Minv = process_birdseye_view(clean_roi_mask, polygon)
+        use_sliding_window = True
+        if left_tracker.best_fit is not None and right_tracker.best_fit is not None:
+            leftx, lefty, rightx, righty, pixel_img = search_around_poly(
+                warped_binary, left_tracker.best_fit, right_tracker.best_fit
+            )
+            if len(leftx) > 25 and len(rightx) > 25:
+                use_sliding_window = False
+            else:
+                left_tracker = LaneTracker() 
+                right_tracker = LaneTracker()
+        if use_sliding_window:
+            hist, leftx_base, rightx_base = get_histogram_peaks(warped_binary)
+            leftx, lefty, rightx, righty, pixel_img = sliding_window(warped_binary, leftx_base, rightx_base)
+        left_fit_smooth, right_fit_smooth, left_fitx, right_fitx, ploty, tracked_img = fit_polynomial(
+            FRAME_HEIGHT, leftx, lefty, rightx, righty, pixel_img, left_tracker, right_tracker
+        )
+        if left_fit_smooth is not None and right_fit_smooth is not None:
+            l_bot_x = left_fit_smooth[0]*FRAME_HEIGHT**2 + left_fit_smooth[1]*FRAME_HEIGHT + left_fit_smooth[2]
+            r_bot_x = right_fit_smooth[0]*FRAME_HEIGHT**2 + right_fit_smooth[1]*FRAME_HEIGHT + right_fit_smooth[2]
+            center_x = FRAME_WIDTH / 2
+            lane_width_px = r_bot_x - l_bot_x
+            margin = lane_width_px * 0.4  
+            if l_bot_x > (center_x + margin) or r_bot_x < (center_x - margin):
+                left_tracker = LaneTracker()   
+                right_tracker = LaneTracker()  
+        curvature, offset_m, direction, is_departure = measure_curvature_and_offset(left_fit_smooth, right_fit_smooth)
+        steering_angle = 90
+        motor_speed = 0
+        if direction == "Unknown":
+            # Failsafe: Mất vạch kẻ đường -> Dừng xe, đưa vô lăng về giữa và xóa nhớ PID
+            steering_angle = 90
+            motor_speed = 0
+        else:
+            # Xe nhận diện được đường -> Chạy tốc độ cố định và bẻ lái tự động
+            motor_speed = BASE_MOTOR_SPEED
+        if is_departure:
+            warning_hold_frames = 40
+            last_warning_dir = direction
+        elif warning_hold_frames > 0:
+            is_departure = True
+            direction = last_warning_dir
+            warning_hold_frames -= 1
+        final_hud_img = draw_lane_and_hud(
+            frame, warped_binary, left_fit_smooth, right_fit_smooth, 
+            Minv, curvature, offset_m, direction, is_departure
+        )
+        # --- BỔ SUNG: Vẽ thông số Điều khiển LKA lên màn hình HUD ---
+        lka_text = f"CMD | Steering: {steering_angle} deg | Speed: {motor_speed}%"
+        cv2.putText(final_hud_img, lka_text, (20, FRAME_HEIGHT - 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
+        cv2.putText(final_hud_img, lka_text, (20, FRAME_HEIGHT - 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        # -------------------------------------------------------------
+        display_frame = None
+        if view_mode == ord('0'):
+            display_frame = frame.copy()
+            x1, y1, x2, y2 = roi_rect
+            cv2.rectangle(display_frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            overlay = display_frame.copy()
+            cv2.rectangle(overlay, (x1, y1), (x2, y2), (255, 0, 0), -1)
+            cv2.addWeighted(overlay, 0.2, display_frame, 0.8, 0, display_frame)
+            cv2.putText(display_frame, "0. Brightness Sensing ROI", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        elif view_mode == ord('1'):
+            display_frame = cv2.cvtColor(final_mask, cv2.COLOR_GRAY2BGR)
+            cv2.putText(display_frame, "1. Binary Mask", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        elif view_mode == ord('2'):
+            display_frame = cv2.cvtColor(masked_edges, cv2.COLOR_GRAY2BGR)
+            cv2.putText(display_frame, "2. Masked Canny Edges", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        elif view_mode == ord('3') or view_mode == ord('4'):
+            display_frame = frame.copy()
+            if lines is not None:
+                for line in lines:
+                    x1, y1, x2, y2 = line[0]
+                    color = (255, 0, 255) if view_mode == ord('3') else (0, 255, 0)
+                    cv2.line(display_frame, (x1, y1), (x2, y2), color, 3) 
+            if view_mode == ord('4') and current_vp is not None:
+                cv2.circle(display_frame, current_vp, 10, (0, 255, 255), -1)
+            title = "3. Hough Lines" if view_mode == ord('3') else "4. Vanishing Point"
+            cv2.putText(display_frame, title, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        elif view_mode == ord('5'):
+            display_frame = cv2.bitwise_and(frame, cv2.cvtColor(black_mask, cv2.COLOR_GRAY2BGR))
+            cv2.polylines(display_frame, [polygon], True, (0, 255, 0), 2) 
+            cv2.putText(display_frame, "5. Dynamic ROI", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        elif view_mode == ord('6'):
+            display_frame = cv2.cvtColor(warped_binary, cv2.COLOR_GRAY2BGR)
+            cv2.putText(display_frame, "6. Bird's Eye View", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        elif view_mode == ord('7'):
+            display_frame = pixel_img
+            cv2.putText(display_frame, "7. Pixel Extraction", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        elif view_mode == ord('8'):
+            display_frame = tracked_img
+            cv2.putText(display_frame, "8. RANSAC + Tracking", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+        else: 
+            display_frame = final_hud_img 
+            cv2.putText(display_frame, "9. Final LDW Output", (20, FRAME_HEIGHT - 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        end_time = time.perf_counter()
+        time_diff = end_time - start_time
+        current_fps = 1.0 / time_diff if time_diff > 0 else 0
+        fps_history.append(current_fps)
+        if len(fps_history) > 10: 
+            fps_history.pop(0)
+        smoothed_fps = sum(fps_history) / len(fps_history)
+        fps_text = f"FPS: {smoothed_fps:.1f}"
+        (text_width, text_height), _ = cv2.getTextSize(fps_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+        fps_x = FRAME_WIDTH - text_width - 20
+        fps_y = 40
+        cv2.putText(final_hud_img, fps_text, (fps_x, fps_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
+        cv2.putText(final_hud_img, fps_text, (fps_x, fps_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        info_text = f"Luma: {mean_bright:.1f} | Gamma: {gamma_val:.2f}"
+        cv2.putText(final_hud_img, info_text, (20, FRAME_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3)
+        cv2.putText(final_hud_img, info_text, (20, FRAME_HEIGHT - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+        # --- BỔ SUNG: In thông số Log ra Terminal mỗi 15 khung hình ---
+        if frame_count % 15 == 0:
+            print(f"⏳ Frame {frame_count:04d} | Độ lệch: {offset_m:.2f}m {direction} | Góc Servo: {steering_angle}° | Tốc độ: {motor_speed}%")
+        # --------------------------------------------------------------
+        cv2.imshow("ADAS Project", display_frame)
+        #ghi vào video
+        out_video.write(display_frame)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'): 
+            break
+        elif key in [ord(str(i)) for i in range(10)]: 
+            view_mode = key 
+        elif key == ord('s') or key == ord('S'):
+            filename = f"screenshot_mode_{chr(view_mode)}.jpg"
+            cv2.imwrite(filename, display_frame)
+            print(f"File duoc luu: {filename}")
+    cap.release()
+    out_video.release()
+    cv2.destroyAllWindows()
+    print("Luu video vao file: adas_final_output.mp4")
+if __name__ == "__main__":
+    main()
+</file>
+
+<file path="pipeline/step1_preprocessing.py">
+import cv2
+import numpy as np
+def auto_adjust_gamma(image, min_gamma=0.05, max_gamma=2.0):
+    height, width = image.shape[:2]
+    x_start = int(width * 0.1)
+    x_end = int(width * 0.9)
+    y_start, y_end = int(height * 0.4), height 
+    road_roi = image[y_start:y_end, x_start:x_end]
+    gray_roi = cv2.cvtColor(road_roi, cv2.COLOR_BGR2GRAY)
+    mean_brightness_road = np.mean(gray_roi)
+    gamma = np.interp(mean_brightness_road, [20, 60, 100, 140, 180], [0.05, 0.15, 0.4, 1.00, 2.00])
+    #gamma = np.interp(mean_brightness_road, [20, 60, 100, 140, 180], [0.4, 0.8, 1.0, 1.5, 2.5])
+    gamma = np.clip(gamma, min_gamma, max_gamma)
+    table = np.array([((i / 255.0) ** gamma) * 255 
+                      for i in np.arange(0, 256)]).astype("uint8")
+    corrected = cv2.LUT(image, table)
+    roi_rect = (x_start, y_start, x_end, y_end)
+    return corrected, gamma, mean_brightness_road, roi_rect
+def process_frame(frame, block_size=61, C_value=-15):
+    frame_gamma, gamma_value, mean_bright, roi_rect = auto_adjust_gamma(frame)
+    lab = cv2.cvtColor(frame_gamma, cv2.COLOR_BGR2LAB)
+    L = lab[:, :, 0]
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+    L_clahe = clahe.apply(L)
+    binary = cv2.adaptiveThreshold(
+        L_clahe, 
+        255, 
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+        cv2.THRESH_BINARY, 
+        block_size, 
+        C_value
+    )
+    kernel_horizontal = cv2.getStructuringElement(cv2.MORPH_RECT, (35, 1))
+    horizontal_noise = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel_horizontal)
+    binary_no_horizontal = cv2.subtract(binary, horizontal_noise)
+    kernel_vertical = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 35))
+    binary_cleaned = cv2.morphologyEx(binary_no_horizontal, cv2.MORPH_OPEN, kernel_vertical)
+    kernel_smooth = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    binary_final = cv2.morphologyEx(binary_cleaned, cv2.MORPH_CLOSE, kernel_smooth)
+    return binary, gamma_value, mean_bright, roi_rect
+</file>
+
+<file path="pipeline/step2_dynamic_roi.py">
+import cv2
+import numpy as np
+import math
+from config import *
+#Lấy mask động để tìm đường thẳng Hough
+def _get_base_mask(width, height, bottom_y, vp=None):
+    mask = np.zeros((height, width), dtype=np.uint8)
+    horizon_y = int(height * BASE_MASK_HORIZON_RATIO) 
+    vp_x = vp[0] if vp is not None else width // 2
+    polygon = np.array([[
+        (int(width * BASE_MASK_BOT_LEFT_RATIO), bottom_y),            
+        (vp_x - DYNAMIC_BASE_MASK_TOP_HALF_WIDTH, horizon_y),         
+        (vp_x + DYNAMIC_BASE_MASK_TOP_HALF_WIDTH, horizon_y),         
+        (int(width * BASE_MASK_BOT_RIGHT_RATIO), bottom_y)            
+    ]], np.int32)
+    cv2.fillPoly(mask, [polygon], 255)
+    return mask
+#Phân loại đường thẳng trái/phải
+def _classify(lines, width):
+    left, right = [], []
+    if lines is None: return left, right
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        if x1 == x2: continue
+        m = (y2 - y1) / (x2 - x1)
+        b = y1 - m * x1
+        if abs(m) < MIN_SLOPE or abs(m) > MAX_SLOPE: continue
+        mid_x = (x1 + x2) / 2
+        length_sq = (x2 - x1)**2 + (y2 - y1)**2 
+        if m < 0 and mid_x < width * LEFT_LANE_MAX_X_RATIO: 
+            left.append((length_sq, m, b))
+        elif m > 0 and mid_x > width * RIGHT_LANE_MIN_X_RATIO:
+            right.append((length_sq, m, b))
+    left.sort(key=lambda x: x[0], reverse=True)
+    right.sort(key=lambda x: x[0], reverse=True)
+    left = [(m, b) for _, m, b in left[:10]]
+    right = [(m, b) for _, m, b in right[:10]]
+    return left, right
+#Tìm điểm tụ
+def _find_vanishing_point(left_lines, right_lines, frame_width, frame_height):
+    intersections_x, intersections_y = [], []
+    for left_m, left_b in left_lines:
+        for right_m, right_b in right_lines:
+            if left_m == right_m: continue
+            x = (right_b - left_b) / (left_m - right_m)
+            y = left_m * x + left_b
+            if 0 <= x <= frame_width and 0 <= y <= frame_height:
+                intersections_x.append(x)
+                intersections_y.append(y)
+    if len(intersections_x) > 0:
+        vp_x = int(np.median(intersections_x))
+        vp_y = int(np.median(intersections_y))
+        return (vp_x, vp_y)
+    return None    
+#Tìm và vẽ Dynamic ROI
+def _get_roi_polygon(width, height, vp, bottom_y):
+    if vp is None:
+        vp_y = int(height * FALLBACK_VP_Y_RATIO) 
+        vp_x = width // 2
+    else:
+        vp_x, vp_y = vp
+    top_y = min(max(vp_y + ROI_OFFSET_Y, 0), height)
+    polygon = np.array([[
+        (vp_x - ROI_BOTTOM_OFFSET_LEFT, bottom_y), 
+        (vp_x - ROI_TOP_HALF_WIDTH, top_y),          
+        (vp_x + ROI_TOP_HALF_WIDTH, top_y),          
+        (vp_x + ROI_BOTTOM_OFFSET_RIGHT, bottom_y)  
+    ]], np.int32)
+    return polygon
+def process_dynamic_roi(binary_mask, prev_vp, frame_width, frame_height, bottom_y_percentage=BOTTOM_Y_PERCENTAGE):
+    bottom_y = int(frame_height * bottom_y_percentage)
+    base_mask = _get_base_mask(frame_width, frame_height, bottom_y, vp=prev_vp)
+    masked_binary = cv2.bitwise_and(binary_mask, base_mask)
+    masked_edges = cv2.Canny(masked_binary, CANNY_LOW_THRESH, CANNY_HIGH_THRESH)
+    lines = cv2.HoughLinesP(
+        masked_edges, 1, np.pi/180, 
+        threshold=HOUGH_THRESHOLD, 
+        minLineLength=HOUGH_MIN_LINE_LEN, 
+        maxLineGap=HOUGH_MAX_LINE_GAP
+    )
+    left_lines, right_lines = _classify(lines, frame_width)
+    vp = _find_vanishing_point(left_lines, right_lines, frame_width, frame_height)
+    if vp is not None:
+        if prev_vp is None: 
+            pass
+        else:
+            dist = math.hypot(vp[0] - prev_vp[0], vp[1] - prev_vp[1])
+            alpha = min(VP_SMOOTH_MAX_ALPHA, max(VP_SMOOTH_MIN_ALPHA, dist / VP_SMOOTH_DIST_SCALE))
+            vp = (int(alpha * vp[0] + (1 - alpha) * prev_vp[0]), 
+                  int(alpha * vp[1] + (1 - alpha) * prev_vp[1]))
+    else:
+        if prev_vp is not None: 
+            vp = prev_vp
+    polygon = _get_roi_polygon(frame_width, frame_height, vp, bottom_y)
+    return polygon, vp, lines, masked_edges
+</file>
+
+<file path="pipeline/step3_birdseye_view.py">
+import cv2
+import numpy as np
+from config import BEV_DST_OFFSET_X
+def process_birdseye_view(binary_mask, polygon_from_roi):
+    height, width = binary_mask.shape[:2]
+    pts = polygon_from_roi[0] 
+    src_points = np.float32([
+        [pts[0][0], pts[0][1]],   
+        [pts[1][0], pts[1][1]],   
+        [pts[2][0], pts[2][1]],   
+        [pts[3][0], pts[3][1]]    
+    ])
+    dst_points = np.float32([
+        [BEV_DST_OFFSET_X, height],     
+        [BEV_DST_OFFSET_X, 0],          
+        [width - BEV_DST_OFFSET_X, 0],          
+        [width - BEV_DST_OFFSET_X, height]      
+    ])
+    M = cv2.getPerspectiveTransform(src_points, dst_points)
+    Minv = cv2.getPerspectiveTransform(dst_points, src_points) 
+    birdseye = cv2.warpPerspective(binary_mask, M, (width, height), flags=cv2.INTER_LINEAR)
+    return birdseye, M, Minv
+</file>
+
+<file path="pipeline/step4_5_lane_detection.py">
+import cv2
+import numpy as np
+from config import *
+class LaneTracker:
+    def __init__(self, smooth_factor=TRACKING_SMOOTH_FACTOR):
+        self.recent_fits = [] 
+        self.smooth_factor = smooth_factor
+        self.best_fit = None 
+    def update(self, new_fit):
+        if new_fit is None:
+            return self.best_fit
+        if self.best_fit is not None:
+            diff_A = abs(new_fit[0] - self.best_fit[0])
+            if diff_A > TRACKING_MAX_A_DIFF:
+                return self.best_fit
+        self.recent_fits.append(new_fit)        
+        if len(self.recent_fits) > self.smooth_factor:
+            self.recent_fits.pop(0)            
+        self.best_fit = np.mean(self.recent_fits, axis=0)
+        return self.best_fit
+def get_histogram_peaks(binary_warped):
+    height = binary_warped.shape[0] 
+    bottom_half = binary_warped[height // 2 :, :]
+    histogram = np.sum(bottom_half, axis=0)
+    midpoint = int(histogram.shape[0] // 2)
+    leftx_base = np.argmax(histogram[:midpoint])
+    rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+    return histogram, leftx_base, rightx_base
+def sliding_window(binary_warped, leftx_base, rightx_base):
+    out_img = np.dstack((binary_warped, binary_warped, binary_warped)) * 255
+    nwindows = SLIDING_WINDOW_N
+    margin = SLIDING_WINDOW_MARGIN
+    minpix = SLIDING_WINDOW_MINPIX
+    window_height = int(binary_warped.shape[0] // nwindows)
+    nonzero = binary_warped.nonzero()
+    nonzeroy = np.array(nonzero[0])
+    nonzerox = np.array(nonzero[1])
+    leftx_current, rightx_current = leftx_base, rightx_base
+    left_lane_inds, right_lane_inds = [], []
+    for window in range(nwindows):
+        win_y_low = binary_warped.shape[0] - (window + 1) * window_height
+        win_y_high = binary_warped.shape[0] - window * window_height
+        win_xleft_low, win_xleft_high = leftx_current - margin, leftx_current + margin
+        win_xright_low, win_xright_high = rightx_current - margin, rightx_current + margin
+        cv2.rectangle(out_img, (win_xleft_low, win_y_low), (win_xleft_high, win_y_high), (0, 255, 0), 2)
+        cv2.rectangle(out_img, (win_xright_low, win_y_low), (win_xright_high, win_y_high), (0, 255, 0), 2)
+        good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & 
+                          (nonzerox >= win_xleft_low) & (nonzerox < win_xleft_high)).nonzero()[0]
+        good_right_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & 
+                           (nonzerox >= win_xright_low) & (nonzerox < win_xright_high)).nonzero()[0]
+        left_lane_inds.append(good_left_inds)
+        right_lane_inds.append(good_right_inds)
+        if len(good_left_inds) > minpix: 
+            new_leftx = int(np.mean(nonzerox[good_left_inds]))
+            #cập nhật nếu tâm không bị giật ngang quá gắt
+            if abs(new_leftx - leftx_current) <= margin * 1.5:
+                leftx_current = new_leftx
+        if len(good_right_inds) > minpix: 
+            new_rightx = int(np.mean(nonzerox[good_right_inds]))
+            if abs(new_rightx - rightx_current) <= margin * 1.5:
+                rightx_current = new_rightx
+    left_lane_inds = np.concatenate(left_lane_inds) if len(left_lane_inds) > 0 else np.array([])
+    right_lane_inds = np.concatenate(right_lane_inds) if len(right_lane_inds) > 0 else np.array([])
+    out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [0, 0, 255]
+    out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [255, 0, 0]
+    leftx, lefty = nonzerox[left_lane_inds], nonzeroy[left_lane_inds]
+    rightx, righty = nonzerox[right_lane_inds], nonzeroy[right_lane_inds]
+    return leftx, lefty, rightx, righty, out_img
+def search_around_poly(binary_warped, left_fit, right_fit):
+    margin = SEARCH_AROUND_MARGIN
+    nonzero = binary_warped.nonzero()
+    nonzeroy = np.array(nonzero[0])
+    nonzerox = np.array(nonzero[1])
+    left_fitx = left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy + left_fit[2]
+    right_fitx = right_fit[0]*(nonzeroy**2) + right_fit[1]*nonzeroy + right_fit[2]
+    left_lane_inds = ((nonzerox > (left_fitx - margin)) & (nonzerox < (left_fitx + margin)))
+    right_lane_inds = ((nonzerox > (right_fitx - margin)) & (nonzerox < (right_fitx + margin)))
+    leftx = nonzerox[left_lane_inds]
+    lefty = nonzeroy[left_lane_inds]
+    rightx = nonzerox[right_lane_inds]
+    righty = nonzeroy[right_lane_inds]
+    out_img = np.dstack((binary_warped, binary_warped, binary_warped)) * 255
+    return leftx, lefty, rightx, righty, out_img
+def ransac_polyfit(x, y, max_iters=RANSAC_MAX_ITERS, threshold=RANSAC_THRESHOLD):
+    if len(x) < RANSAC_MIN_POINTS:
+        return None, None
+    best_fit = None
+    max_inliers = 0
+    #Lấy mẫu thưa 3 để tăng tốc độ
+    step = 3
+    eval_x = x[::step]
+    eval_y = y[::step]
+    for _ in range(max_iters):
+        idx = np.random.choice(len(x), 3, replace=False)
+        x1, x2, x3 = x[idx]
+        y1, y2, y3 = y[idx]
+        y1, y2, y3 = float(y1), float(y2), float(y3)
+        x1, x2, x3 = float(x1), float(x2), float(x3)
+        denom = (y1 - y2) * (y1 - y3) * (y2 - y3)
+        if abs(denom) < 1e-5:
+            continue
+        A = (x1 * (y2 - y3) - x2 * (y1 - y3) + x3 * (y1 - y2)) / denom
+        if abs(A) > RANSAC_MAX_A_COEFF: 
+            continue
+        B = -(x1 * (y2**2 - y3**2) - x2 * (y1**2 - y3**2) + x3 * (y1**2 - y2**2)) / denom
+        C = (x1 * y2 * y3 * (y2 - y3) - x2 * y1 * y3 * (y1 - y3) + x3 * y1 * y2 * (y1 - y2)) / denom
+        fit = [A, B, C]
+        fit_eval_x = fit[0]*eval_y**2 + fit[1]*eval_y + fit[2]
+        errors = np.abs(eval_x - fit_eval_x)
+        inliers_count = np.sum(errors < threshold)
+        if inliers_count > max_inliers:
+            max_inliers = inliers_count
+            best_fit = fit
+    if best_fit is not None:
+        final_fit_x = best_fit[0]*y**2 + best_fit[1]*y + best_fit[2]
+        best_inlier_idx = np.abs(x - final_fit_x) < threshold
+        if np.sum(best_inlier_idx) > 3:
+            final_fit = np.polyfit(y[best_inlier_idx], x[best_inlier_idx], 2)
+            return final_fit, best_inlier_idx
+    return None, None
+def fit_polynomial(img_height, leftx, lefty, rightx, righty, out_img, left_tracker, right_tracker):
+    left_fitx, right_fitx = None, None
+    ploty = np.linspace(0, img_height - 1, img_height)
+    raw_left_fit, left_inliers = ransac_polyfit(leftx, lefty)
+    smoothed_left_fit = left_tracker.update(raw_left_fit)
+    if smoothed_left_fit is not None:
+        left_fitx = smoothed_left_fit[0]*ploty**2 + smoothed_left_fit[1]*ploty + smoothed_left_fit[2]
+        pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))], np.int32)
+        cv2.polylines(out_img, pts_left, False, (0, 255, 255), 4)
+        if raw_left_fit is not None:
+            outliers_idx = ~left_inliers
+            out_img[lefty[outliers_idx], leftx[outliers_idx]] = [150, 150, 150] # Tô xám pixel nhiễu
+    raw_right_fit, right_inliers = ransac_polyfit(rightx, righty)
+    smoothed_right_fit = right_tracker.update(raw_right_fit)
+    if smoothed_right_fit is not None:
+        right_fitx = smoothed_right_fit[0]*ploty**2 + smoothed_right_fit[1]*ploty + smoothed_right_fit[2]
+        pts_right = np.array([np.transpose(np.vstack([right_fitx, ploty]))], np.int32)
+        cv2.polylines(out_img, pts_right, False, (0, 255, 255), 4)
+        if raw_right_fit is not None:
+            outliers_idx = ~right_inliers
+            out_img[righty[outliers_idx], rightx[outliers_idx]] = [150, 150, 150] # Tô xám pixel nhiễu
+    return smoothed_left_fit, smoothed_right_fit, left_fitx, right_fitx, ploty, out_img
+</file>
+
+<file path="pipeline/step6_display.py">
+import cv2
+import numpy as np
+from config import *
+_ploty_trunc = None
+_ploty_trunc_sq = None
+def measure_curvature_and_offset(left_fit, right_fit, car_center_px=None):
+    y_eval = FRAME_HEIGHT
+    if car_center_px is None:
+        car_center_px = FRAME_WIDTH / 2
+    is_departure = False
+    direction = "Unknown"
+    offset_m = 0.0
+    curvature = None
+    left_x_bottom = None
+    right_x_bottom = None
+    if left_fit is not None:
+        left_x_bottom = left_fit[0]*y_eval**2 + left_fit[1]*y_eval + left_fit[2]
+    if right_fit is not None:
+        right_x_bottom = right_fit[0]*y_eval**2 + right_fit[1]*y_eval + right_fit[2]
+    #Check lấn làn trái
+    if left_x_bottom is not None and car_center_px <= left_x_bottom:
+        is_departure = True
+        direction = "Left"
+        offset_m = (left_x_bottom - car_center_px) * XM_PER_PIX 
+    #Check lấn làn phải    
+    elif right_x_bottom is not None and car_center_px >= right_x_bottom:
+        is_departure = True
+        direction = "Right"
+        offset_m = (car_center_px - right_x_bottom) * XM_PER_PIX
+    #an toàn
+    elif left_x_bottom is not None and right_x_bottom is not None:
+        direction = "Inside Lane"
+        lane_center_px = (left_x_bottom + right_x_bottom) / 2
+        offset_m = abs(car_center_px - lane_center_px) * XM_PER_PIX
+        if car_center_px < lane_center_px:
+            direction = "Inside Left"   # Xe hơi lệch sang nửa trái của làn
+        else:
+            direction = "Inside Right"  # Xe hơi lệch sang nửa phải của làn
+        left_a_m = left_fit[0] * XM_PER_PIX / (YM_PER_PIX ** 2)
+        left_b_m = left_fit[1] * XM_PER_PIX / YM_PER_PIX
+        right_a_m = right_fit[0] * XM_PER_PIX / (YM_PER_PIX ** 2)
+        right_b_m = right_fit[1] * XM_PER_PIX / YM_PER_PIX
+        left_curverad = ((1 + (2 * left_a_m * (y_eval * YM_PER_PIX) + left_b_m) ** 2) ** 1.5) / np.absolute(2 * left_a_m)
+        right_curverad = ((1 + (2 * right_a_m * (y_eval * YM_PER_PIX) + right_b_m) ** 2) ** 1.5) / np.absolute(2 * right_a_m)
+        curvature = (left_curverad + right_curverad) / 2
+    else:
+        direction = "Unknown"
+    return curvature, offset_m, direction, is_departure
+def draw_lane_and_hud(frame, warped_binary, left_fit_smooth, right_fit_smooth, Minv, curvature, offset_m, direction, is_departure):
+    global _ploty_trunc, _ploty_trunc_sq
+    result = frame.copy()
+    if is_departure: 
+        warn_text = f"WARNING: DEPARTURE {direction.upper()}!"
+        cv2.putText(result, warn_text, (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 3)
+        cv2.putText(result, warn_text, (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+    #check mất vạch
+    if left_fit_smooth is None and right_fit_smooth is None:
+        if not is_departure:
+            cv2.putText(result, "WARNING: LANE LOST!", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        return result 
+    if left_fit_smooth is None or right_fit_smooth is None:
+        if not is_departure:
+            cv2.putText(result, "POOR VISIBILITY - 1 LANE LOST", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
+    #vẽ vùng làn đường
+    if left_fit_smooth is not None and right_fit_smooth is not None:
+        height, width = warped_binary.shape
+        start_y = int(height * 0.45)
+        expected_len = height - start_y
+        if _ploty_trunc is None or len(_ploty_trunc) != expected_len:
+            _ploty_trunc = np.linspace(start_y, height - 1, expected_len)
+            _ploty_trunc_sq = _ploty_trunc ** 2
+        lane_color = (0, 0, 255) if is_departure else (0, 255, 0)
+        left_fitx = left_fit_smooth[0]*_ploty_trunc_sq + left_fit_smooth[1]*_ploty_trunc + left_fit_smooth[2]
+        right_fitx = right_fit_smooth[0]*_ploty_trunc_sq + right_fit_smooth[1]*_ploty_trunc + right_fit_smooth[2]
+        pts_left = np.array([np.transpose(np.vstack([left_fitx, _ploty_trunc]))])
+        pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, _ploty_trunc])))])
+        pts = np.hstack((pts_left, pts_right)).astype(np.float32)
+        warped_pts = cv2.perspectiveTransform(pts, Minv).astype(np.int32)
+        overlay = frame.copy()
+        cv2.fillPoly(overlay, [warped_pts[0]], lane_color)
+        result = cv2.addWeighted(result, 1, overlay, 0.3, 0)
+    #hiển thị thông số
+    if curvature is not None:
+        if curvature > 3000: curv_text = "Radius: Straight"
+        else: curv_text = f"Radius: {curvature:.0f} m"
+    else:
+        curv_text = "Radius: Unknown"
+    if is_departure: offset_text = f"Over Lane: {offset_m:.2f} m {direction}"
+    else: offset_text = f"Offset: {offset_m:.2f} m {direction}"
+    cv2.putText(result, curv_text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
+    cv2.putText(result, curv_text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
+    cv2.putText(result, offset_text, (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
+    cv2.putText(result, offset_text, (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
+    return result
+</file>
+
+<file path="testing_code/base_mask_tuner.py">
+import cv2
+import numpy as np
+# Hàm callback trống cho Trackbar
+def nothing(x):
+    pass
+def main():
+    # Thay đổi đường dẫn video test của bạn tại đây
+    video_path = 'VIDEO_GOC.mp4' 
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print("Lỗi: Không thể mở video.")
+        return
+    window_name = "Dynamic ROI Tuner (Advanced)"
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name, 900, 700)
+    # 1. Các thông số tĩnh cơ bản
+    cv2.createTrackbar('Bottom Y (%)', window_name, 95, 100, nothing)
+    cv2.createTrackbar('Horizon Y (%)', window_name, 60, 100, nothing)
+    cv2.createTrackbar('Bot Left X (%)', window_name, 5, 100, nothing)
+    cv2.createTrackbar('Bot Right X (%)', window_name, 85, 100, nothing)
+    # 2. Các thông số dành riêng cho TÍNH NĂNG MẶT NẠ ĐỘNG
+    cv2.createTrackbar('Top Half Width (px)', window_name, 50, 320, nothing)
+    cv2.createTrackbar('Simulate VP X (%)', window_name, 50, 100, nothing) # Mặc định Điểm tụ nằm giữa (50%)
+    is_paused = False
+    print("==================================================")
+    print("=== HƯỚNG DẪN SỬ DỤNG DYNAMIC ROI TUNER ===")
+    print("- Kéo các thanh 'Bot/Horizon' để cắt bỏ nắp capo và bầu trời.")
+    print("- Kéo thanh 'Simulate VP X' để giả lập xe đang ôm cua (Điểm tụ dịch chuyển).")
+    print("- Kéo thanh 'Top Half Width' để đảm bảo mặt nạ lúc trượt không làm đứt vạch đường.")
+    print("- Nhấn 'p' để Tạm dừng/Phát tiếp video.")
+    print("- Nhấn 'q' để Thoát và in ra thông số dán vào config.py.")
+    print("==================================================")
+    while True:
+        if not is_paused:
+            ret, frame = cap.read()
+            if not ret:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                continue
+            # Đưa về kích thước chuẩn theo config (640x360)
+            frame = cv2.resize(frame, (640, 360))
+        height, width = frame.shape[:2]
+        # 1. Lấy giá trị từ thanh trượt
+        bot_y_ratio = cv2.getTrackbarPos('Bottom Y (%)', window_name) / 100.0
+        horiz_y_ratio = cv2.getTrackbarPos('Horizon Y (%)', window_name) / 100.0
+        bl_x_ratio = cv2.getTrackbarPos('Bot Left X (%)', window_name) / 100.0
+        br_x_ratio = cv2.getTrackbarPos('Bot Right X (%)', window_name) / 100.0
+        dynamic_top_half_width = cv2.getTrackbarPos('Top Half Width (px)', window_name)
+        vp_x_ratio = cv2.getTrackbarPos('Simulate VP X (%)', window_name) / 100.0
+        # Ràng buộc logic cơ bản (tránh việc đáy lật ngược hoặc trái đè phải)
+        bl_x_ratio = min(bl_x_ratio, br_x_ratio - 0.01)
+        horiz_y_ratio = min(horiz_y_ratio, bot_y_ratio - 0.01)
+        # 2. Tính toán tọa độ Pixel thực tế (Hệ thống MẶT NẠ ĐỘNG)
+        bottom_y = int(height * bot_y_ratio)
+        horizon_y = int(height * horiz_y_ratio)
+        # Tính toán tọa độ giả lập của điểm tụ (Vanishing Point)
+        vp_x = int(width * vp_x_ratio)
+        pt_bl = (int(width * bl_x_ratio), bottom_y)
+        # Đỉnh nắp hình thang bây giờ sẽ nở ra từ điểm tụ giả lập
+        pt_tl = (vp_x - dynamic_top_half_width, horizon_y)
+        pt_tr = (vp_x + dynamic_top_half_width, horizon_y)
+        pt_br = (int(width * br_x_ratio), bottom_y)
+        polygon = np.array([[pt_bl, pt_tl, pt_tr, pt_br]], np.int32)
+        # 3. Tạo hiệu ứng đồ họa
+        mask = np.zeros_like(frame)
+        cv2.fillPoly(mask, [polygon], (255, 255, 255))
+        dark_frame = cv2.addWeighted(frame, 0.3, np.zeros_like(frame), 0.7, 0)
+        roi_focus = cv2.bitwise_and(frame, mask)
+        display = cv2.add(dark_frame, roi_focus)
+        # Vẽ đường viền hình thang
+        cv2.polylines(display, [polygon], True, (0, 255, 0), 2)
+        # Vẽ một điểm vàng để hiển thị vị trí Điểm tụ (VP) đang giả lập
+        cv2.circle(display, (vp_x, horizon_y), 5, (0, 255, 255), -1)
+        if is_paused:
+            cv2.putText(display, "PAUSED - Press 'p' to Resume", (10, 30), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.imshow(window_name, display)
+        delay = 1 if not is_paused else 30
+        key = cv2.waitKey(delay) & 0xFF
+        if key == ord('q'):
+            print("\n=== COPY ĐOẠN SAU VÀO CONFIG.PY CỦA BẠN ===")
+            print(f"BOTTOM_Y_PERCENTAGE = {bot_y_ratio:.2f}")
+            print(f"BASE_MASK_HORIZON_RATIO = {horiz_y_ratio:.2f}")
+            print(f"BASE_MASK_BOT_LEFT_RATIO = {bl_x_ratio:.2f}")
+            print(f"BASE_MASK_BOT_RIGHT_RATIO = {br_x_ratio:.2f}")
+            print(f"DYNAMIC_BASE_MASK_TOP_HALF_WIDTH = {dynamic_top_half_width}")
+            print("===========================================\n")
+            break
+        elif key == ord('p'):
+            is_paused = not is_paused
+    cap.release()
+    cv2.destroyAllWindows()
+if __name__ == '__main__':
+    main()
+</file>
+
+<file path="testing_code/BEV_simulation">
+import cv2
+import numpy as np
+
+FRAME_WIDTH = 800
+FRAME_HEIGHT = 600
+
+# ==========================================
+# 1. CÁC HÀM XỬ LÝ ẢNH CƠ BẢN (Từ bước 1)
+# ==========================================
+def auto_adjust_gamma(image):
+    height, width = image.shape[:2]
+    y_start, y_end = int(height * 0.6), height 
+    road_roi = image[y_start:y_end, 0:width]
+    gray_roi = cv2.cvtColor(road_roi, cv2.COLOR_BGR2GRAY)
+    mean_bright = np.mean(gray_roi)
+    gamma = np.interp(mean_bright, [30, 110, 160], [1.5, 0.3, 0.05])
+    gamma = np.clip(gamma, 0.01, 2.0)
+    invGamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+    return cv2.LUT(image, table)
+
+def process_frame_pipeline(frame, threshold=105):
+    frame_gamma = auto_adjust_gamma(frame)
+    lab = cv2.cvtColor(frame_gamma, cv2.COLOR_BGR2LAB)
+    L = lab[:, :, 0]
+    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+    L_clahe = clahe.apply(L)
+    _, binary = cv2.threshold(L_clahe, threshold, 255, cv2.THRESH_BINARY)
+    kernel = np.ones((3, 3), np.uint8)
+    return cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel, iterations=1)
+
+# ==========================================
+# 2. BỘ ĐIỀU KHIỂN TRACKBAR
+# ==========================================
+def nothing(x): pass
+
+def setup_trackbars():
+    cv2.namedWindow("BEV Tuner")
+    cv2.resizeWindow("BEV Tuner", 400, 200)
+    # Khoảng cách từ tâm ra 2 bên đỉnh (Top Width)
+    cv2.createTrackbar("Top Width", "BEV Tuner", 60, 400, nothing) 
+    # Khoảng cách từ tâm ra 2 bên đáy (Bottom Width)
+    cv2.createTrackbar("Bottom Width", "BEV Tuner", 300, 400, nothing) 
+    # Chiều cao của Đỉnh hình thang (Top Y)
+    cv2.createTrackbar("Top Y", "BEV Tuner", 380, FRAME_HEIGHT, nothing)
+    # Chiều cao của Đáy hình thang (Bottom Y)
+    cv2.createTrackbar("Bottom Y", "BEV Tuner", 570, FRAME_HEIGHT, nothing)
+
+def get_src_from_trackbars():
+    tw = cv2.getTrackbarPos("Top Width", "BEV Tuner")
+    bw = cv2.getTrackbarPos("Bottom Width", "BEV Tuner")
+    ty = cv2.getTrackbarPos("Top Y", "BEV Tuner")
+    by = cv2.getTrackbarPos("Bottom Y", "BEV Tuner")
+    
+    center_x = FRAME_WIDTH // 2
+    src = np.float32([
+        [center_x - tw, ty], # Đỉnh trái
+        [center_x + tw, ty], # Đỉnh phải
+        [center_x + bw, by], # Đáy phải
+        [center_x - bw, by]  # Đáy trái
+    ])
+    return src
+
+# ==========================================
+# 3. VÒNG LẶP CHÍNH
+# ==========================================
+if __name__ == "__main__":
+    cap = cv2.VideoCapture('test7.mp4') # Thay video của bạn
+    setup_trackbars()
+    
+    print("🚀 BỘ TINH CHỈNH BEV ĐÃ MỞ!")
+    print("Hãy kéo các thanh trượt trong cửa sổ 'BEV Tuner' để căn chỉnh hình thang.")
+    print("Nhấn ESC để thoát.")
+
+    while True:
+        ret, frame = cap.read()
+        if not ret: 
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            continue
+            
+        frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
+        
+        # 1. Lấy mask đen trắng
+        final_mask = process_frame_pipeline(frame, threshold=105)
+        
+        # 2. Lấy tọa độ hình thang từ thanh trượt
+        src = get_src_from_trackbars()
+        
+        # 3. Kéo giãn ảnh (Bird's Eye View)
+        offset_x = 200 # Lề an toàn để vạch không dính sát viền
+        dst = np.float32([
+            [offset_x, 0], 
+            [FRAME_WIDTH - offset_x, 0], 
+            [FRAME_WIDTH - offset_x, FRAME_HEIGHT], 
+            [offset_x, FRAME_HEIGHT]
+        ])
+        
+        M = cv2.getPerspectiveTransform(src, dst)
+        warped_mask = cv2.warpPerspective(final_mask, M, (FRAME_WIDTH, FRAME_HEIGHT), flags=cv2.INTER_LINEAR)
+        
+        # 4. Hiển thị trực quan
+        # Vẽ hình thang lên ảnh gốc để dễ nhắm
+        frame_with_poly = frame.copy()
+        cv2.polylines(frame_with_poly, [np.int32(src)], True, (0, 0, 255), 2)
+        
+        # Chuyển ảnh BEV sang 3 kênh màu để ghép chung
+        warped_color = cv2.cvtColor(warped_mask, cv2.COLOR_GRAY2BGR)
+        
+        # Ghép 2 màn hình cạnh nhau
+        side_by_side = np.hstack((frame_with_poly, warped_color))
+        # Thu nhỏ lại một chút để xem trên màn hình máy tính dễ hơn
+        side_by_side = cv2.resize(side_by_side, (FRAME_WIDTH * 2 // 2, FRAME_HEIGHT // 2))
+        
+        cv2.imshow("Left: Khung ngam | Right: BEV Output", side_by_side)
+        
+        # 5. In tọa độ tối ưu ra terminal nếu người dùng muốn lưu lại
+        key = cv2.waitKey(30) & 0xFF
+        if key == 27: # Phím ESC
+            print("\n=== LƯU LẠI TỌA ĐỘ NÀY CHO CODE CHÍNH ===")
+            print(f"src = np.float32([\n    [{src[0][0]}, {src[0][1]}],\n    [{src[1][0]}, {src[1][1]}],\n    [{src[2][0]}, {src[2][1]}],\n    [{src[3][0]}, {src[3][1]}]\n])")
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+</file>
+
+<file path="testing_code/hls_tuner.py">
+import cv2
+import numpy as np
+def nothing(x): pass
+def main():
+    cap = cv2.VideoCapture('b1.mp4')
+    if not cap.isOpened(): return
+    window_name = "HLS Color Tuner"
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name, 640, 400)
+    # Khởi tạo thanh trượt (Hue: 0-179, Lightness: 0-255, Saturation: 0-255)
+    cv2.createTrackbar('H Min', window_name, 0, 179, nothing)
+    cv2.createTrackbar('H Max', window_name, 179, 179, nothing)
+    cv2.createTrackbar('L Min', window_name, 150, 255, nothing)
+    cv2.createTrackbar('L Max', window_name, 255, 255, nothing)
+    cv2.createTrackbar('S Min', window_name, 0, 255, nothing)
+    cv2.createTrackbar('S Max', window_name, 255, 255, nothing)
+    is_paused = False
+    print("=== HƯỚNG DẪN ===")
+    print("1. Tìm vạch TRẮNG: Kéo L Min lên cao (~150-180), S Min để thấp, H full dải.")
+    print("2. Tìm vạch VÀNG: Thu hẹp H (khoảng 15-35), đẩy S Min lên cao (>50) để lọc màu lợt.")
+    print("Nhấn 'p' để Tạm dừng, 'q' để Thoát và in thông số.")
+    while True:
+        if not is_paused:
+            ret, frame = cap.read()
+            if not ret:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                continue
+            frame = cv2.resize(frame, (640, 360))
+            # Giả lập lại bước tăng sáng gamma (Nếu video tối)
+            gamma = 1.0 
+            table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+            frame_gamma = cv2.LUT(frame, table)
+            hls = cv2.cvtColor(frame_gamma, cv2.COLOR_BGR2HLS)
+        h_min = cv2.getTrackbarPos('H Min', window_name)
+        h_max = cv2.getTrackbarPos('H Max', window_name)
+        l_min = cv2.getTrackbarPos('L Min', window_name)
+        l_max = cv2.getTrackbarPos('L Max', window_name)
+        s_min = cv2.getTrackbarPos('S Min', window_name)
+        s_max = cv2.getTrackbarPos('S Max', window_name)
+        lower_bound = np.array([h_min, l_min, s_min], dtype=np.uint8)
+        upper_bound = np.array([h_max, l_max, s_max], dtype=np.uint8)
+        mask = cv2.inRange(hls, lower_bound, upper_bound)
+        result = cv2.bitwise_and(frame, frame, mask=mask)
+        # Ghép 2 ảnh: Mask đen trắng và Kết quả màu
+        mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        combined = np.hstack((mask_bgr, result))
+        cv2.imshow(window_name, combined)
+        key = cv2.waitKey(1 if not is_paused else 30) & 0xFF
+        if key == ord('q'):
+            print(f"\n[Thông số bạn vừa chọn]")
+            print(f"lower = np.array([{h_min}, {l_min}, {s_min}], dtype=np.uint8)")
+            print(f"upper = np.array([{h_max}, {l_max}, {s_max}], dtype=np.uint8)\n")
+            break
+        elif key == ord('p'):
+            is_paused = not is_paused
+    cap.release()
+    cv2.destroyAllWindows()
+if __name__ == '__main__':
+    main()
+</file>
+
+<file path="testing_code/pid_testing.py">
+import time
+import math
+import matplotlib.pyplot as plt
+from step7_pid_control import PIDController
+def simulate_car_pid(Kp, Ki, Kd, speed_m_s=1.0, duration_sec=10.0, dt=0.05):
+    """
+    Giả lập xe chạy và điều khiển bám làn bằng PID
+    """
+    pid = PIDController(Kp=Kp, Ki=Ki, Kd=Kd)
+    # Khởi tạo trạng thái của xe ảo
+    car_offset = 0.5      # Cố tình đặt xe lệch 0.5 mét so với tâm làn
+    car_heading = 0.0     # Góc lệch thân xe (Radian)
+    wheelbase = 0.2       # Chiều dài cơ sở của xe mô hình (20cm)
+    time_steps = []
+    offsets = []
+    steering_angles = []
+    # Giả lập vòng lặp thời gian thực
+    for step in range(int(duration_sec / dt)):
+        current_time = step * dt
+        # 1. Thuật toán "nhìn" thấy độ lệch và gọi PID
+        # Vì xe đang nằm bên phải vạch (offset > 0), ta truyền "Right"
+        direction = "Right" if car_offset > 0 else "Left"
+        # Giả lập thời gian trôi qua cho khâu I và D
+        pid.prev_time = time.time() - dt 
+        # PID tính toán góc bẻ lái (Degree)
+        servo_angle = pid.compute(abs(car_offset), direction)
+        # 2. Quy đổi góc Servo sang góc bẻ bánh xe vật lý
+        # Giả sử: Servo 90 độ -> bánh xe thẳng (0 rad)
+        # Servo 60 độ -> bánh xe rẽ trái (-30 độ)
+        steering_deg = servo_angle - 90
+        steering_rad = math.radians(steering_deg)
+        # 3. Phương trình Động học xe đạp (Kinematic Bicycle Model)
+        # Cập nhật hướng xe (Heading) và Vị trí ngang (Offset)
+        car_heading += (speed_m_s / wheelbase) * math.tan(steering_rad) * dt
+        car_offset += speed_m_s * math.sin(car_heading) * dt
+        # Lưu trữ dữ liệu để vẽ biểu đồ
+        time_steps.append(current_time)
+        offsets.append(car_offset)
+        steering_angles.append(servo_angle)
+    return time_steps, offsets, steering_angles
+# ==========================================
+# THỬ NGHIỆM TÌM THÔNG SỐ (HEURISTIC TUNING)
+# ==========================================
+# Kịch bản 1: Chỉ có Kp (Sẽ thấy xe lắc lư văng đuôi - hình sin)
+t, off1, _ = simulate_car_pid(Kp=80, Ki=0, Kd=0)
+# Kịch bản 2: Thêm Kd để giảm chấn (Sẽ thấy xe lướt mượt vào tâm)
+t, off2, _ = simulate_car_pid(Kp=80, Ki=0, Kd=30)
+# Kịch bản 3: Tối ưu thông số (Bám làn nhanh nhất)
+t, off3, _ = simulate_car_pid(Kp=100, Ki=0, Kd=50)
+t, off4, _ = simulate_car_pid(Kp=120, Ki=0, Kd=70)
+# Vẽ biểu đồ Đánh giá
+plt.figure(figsize=(10, 6))
+plt.plot(t, off1, label='Kp=80, Kd=0', linestyle='--')
+plt.plot(t, off2, label='Kp=80, Kd=30')
+plt.plot(t, off3, label='Kp=100, Kd=50', linewidth=2)
+plt.plot(t, off4, label='Kp=120, Kd=70')
+plt.axhline(0, color='red', label='Tâm làn đường', linewidth=1)
+plt.xlabel("Thời gian (s)")
+plt.ylabel("Offset (mét)")
+plt.legend()
+plt.grid(True)
+plt.show()
+</file>
+
+<file path="testing_code/ROI">
+import cv2
+import numpy as np
+import math
+
+FRAME_WIDTH = 800
+FRAME_HEIGHT = 600
+BOTTOM_Y_PERCENTAGE = 0.95 
+
+def get_base_mask(width, height, bottom_y):
+    mask = np.zeros((height, width), dtype=np.uint8)
+    horizon_y = int(height * 0.60) 
+    polygon = np.array([[(0, bottom_y), (int(width * 0.25), horizon_y), (int(width * 0.75), horizon_y), (width, bottom_y)]], np.int32)
+    cv2.fillPoly(mask, [polygon], 255)
+    return mask
+
+def auto_adjust_gamma(image):
+    height, width = image.shape[:2]
+    y_start, y_end = int(height * 0.6), height 
+    road_roi = image[y_start:y_end, 0:width]
+    gray_roi = cv2.cvtColor(road_roi, cv2.COLOR_BGR2GRAY)
+    mean_bright = np.mean(gray_roi)
+    gamma = np.interp(mean_bright, [30, 110, 160], [1.5, 0.3, 0.05])
+    gamma = np.clip(gamma, 0.01, 2.0)
+    invGamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+    return cv2.LUT(image, table), gamma, mean_bright
+
+def process_frame_pipeline(frame, threshold=105):
+    frame_gamma, gamma_val, mean_bright = auto_adjust_gamma(frame)
+    lab = cv2.cvtColor(frame_gamma, cv2.COLOR_BGR2LAB)
+    L = lab[:, :, 0]
+    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+    L_clahe = clahe.apply(L)
+    _, binary = cv2.threshold(L_clahe, threshold, 255, cv2.THRESH_BINARY)
+    kernel = np.ones((3, 3), np.uint8)
+    return cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel, iterations=1), gamma_val, mean_bright
+
+def classify(lines, width):
+    left, right = [], []
+    if lines is None: return left, right
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        if x1 == x2: continue
+        m = (y2 - y1) / (x2 - x1)
+        b = y1 - m * x1
+        if abs(m) < 0.5 or abs(m) > 2.5: continue
+        mid_x = (x1 + x2) / 2
+        if m < 0 and mid_x < width * 0.65: left.append((m, b))
+        elif m > 0 and mid_x > width * 0.35: right.append((m, b))
+    return left, right
+
+def find_vanishing_point(left_lines, right_lines, frame_width, frame_height):
+    intersections_x, intersections_y = [], []
+    for left_m, left_b in left_lines:
+        for right_m, right_b in right_lines:
+            if left_m == right_m: continue
+            x = (right_b - left_b) / (left_m - right_m)
+            y = left_m * x + left_b
+            if 0 <= x <= frame_width and 0 <= y <= frame_height:
+                intersections_x.append(x)
+                intersections_y.append(y)
+    if len(intersections_x) > 0:
+        return (int(np.median(intersections_x)), int(np.median(intersections_y)))
+    return None     
+
+def get_roi_polygon(width, height, vp, bottom_y):
+    if vp is None:
+        vp_y = int(height * 0.6) 
+        vp_x = width // 2
+    else:
+        vp_x, vp_y = vp
+    offset_y = 30 
+    top_y = min(max(vp_y + offset_y, 0), height)
+    offset_x = 60 
+    polygon = np.array([[(width * 0.15, bottom_y), (vp_x - offset_x, top_y), (vp_x + offset_x, top_y), (width * 0.85, bottom_y)]], np.int32)
+    return polygon
+
+def bird_eye_view(img):
+    height, width = img.shape[:2]
+    src = np.float32([
+    [277.0, 375.0],
+    [523.0, 375.0],
+    [709.0, 570.0],
+    [91.0, 570.0]
+    ])
+    offset = 150 
+    dst = np.float32([
+        [offset, 0], 
+        [width - offset, 0], 
+        [width - offset, height], 
+        [offset, height]
+    ])
+    M = cv2.getPerspectiveTransform(src, dst)
+    Minv = cv2.getPerspectiveTransform(dst, src)
+    warped = cv2.warpPerspective(img, M, (width, height), flags=cv2.INTER_LINEAR)
+    return warped, M, Minv
+
+def get_histogram_peaks(binary_warped):
+    height = binary_warped.shape[0]
+    bottom_half = binary_warped[height // 2 :, :]
+    histogram = np.sum(bottom_half, axis=0)
+    midpoint = int(histogram.shape[0] // 2)
+    leftx_base = np.argmax(histogram[:midpoint])
+    rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+    return histogram, leftx_base, rightx_base
+
+def draw_dashed_line(img, pt1, pt2, color, thickness=1, dash_length=10):
+    x1, y1 = pt1
+    x2, y2 = pt2
+    dist = math.hypot(x2 - x1, y2 - y1)
+    if dist == 0: return
+    dashes = int(dist / dash_length)
+    for i in range(dashes):
+        start = (int(x1 + (x2 - x1) * i / dashes), int(y1 + (y2 - y1) * i / dashes))
+        end = (int(x1 + (x2 - x1) * (i + 0.5) / dashes), int(y1 + (y2 - y1) * (i + 0.5) / dashes))
+        cv2.line(img, start, end, color, thickness)
+
+def draw_matplotlib_style_dashboard(binary_warped, histogram, leftx_base, rightx_base):
+    h_bev, w_bev = binary_warped.shape
+    top_panel_h = 350
+    top_panel = np.ones((top_panel_h, w_bev, 3), dtype=np.uint8) * 255 
+    
+    bottom_half = binary_warped[h_bev // 2 :, :]
+    bottom_half_bgr = cv2.cvtColor(bottom_half, cv2.COLOR_GRAY2BGR)
+    
+    draw_dashed_line(bottom_half_bgr, (leftx_base, 0), (leftx_base, bottom_half.shape[0]), (0, 0, 255), 2)
+    draw_dashed_line(bottom_half_bgr, (rightx_base, 0), (rightx_base, bottom_half.shape[0]), (0, 0, 255), 2)
+    
+    top_panel[50:50+bottom_half.shape[0], 0:w_bev] = bottom_half_bgr
+    cv2.putText(top_panel, "Nua duoi cua anh Bird's Eye view", (w_bev//2 - 150, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+
+    bot_panel_h = 400
+    bot_panel = np.ones((bot_panel_h, w_bev, 3), dtype=np.uint8) * 255 
+    
+    pad_x, pad_y = 50, 50
+    graph_w, graph_h = w_bev - 2*pad_x, bot_panel_h - 2*pad_y
+    
+    for i in range(0, w_bev, 100):
+        cv2.line(bot_panel, (i, pad_y), (i, pad_y + graph_h), (230, 230, 230), 1)
+    for i in range(0, 120, 20):
+        y_pos = pad_y + graph_h - int(i/100 * graph_h)
+        cv2.line(bot_panel, (pad_x, y_pos), (pad_x + graph_w, y_pos), (230, 230, 230), 1)
+
+    cv2.rectangle(bot_panel, (pad_x, pad_y), (pad_x + graph_w, pad_y + graph_h), (150, 150, 150), 1)
+
+    max_val = np.max(histogram)
+    if max_val > 0:
+        pts = []
+        for x in range(pad_x, pad_x + graph_w):
+            y = pad_y + graph_h - int((histogram[x] / max_val) * graph_h)
+            pts.append([x, y])
+        cv2.polylines(bot_panel, [np.array(pts, np.int32)], False, (255, 0, 127), 2) 
+
+        y_left = pad_y + graph_h - int((histogram[leftx_base] / max_val) * graph_h)
+        y_right = pad_y + graph_h - int((histogram[rightx_base] / max_val) * graph_h)
+        
+        cv2.circle(bot_panel, (leftx_base, y_left), 6, (0, 0, 255), -1)
+        cv2.circle(bot_panel, (rightx_base, y_right), 6, (0, 0, 255), -1)
+        
+        cv2.putText(bot_panel, f"Left: {leftx_base}", (leftx_base - 20, y_left - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+        cv2.putText(bot_panel, f"Right: {rightx_base}", (rightx_base - 20, y_right - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+
+    cv2.putText(bot_panel, "Do thi Spatial Histogram", (w_bev//2 - 100, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+
+    return np.vstack((top_panel, bot_panel))
+
+def sliding_window(binary_warped, leftx_base, rightx_base):
+    out_img = np.dstack((binary_warped, binary_warped, binary_warped)) * 255
+    nwindows, margin, minpix = 9, 50, 50
+    window_height = int(binary_warped.shape[0] // nwindows)
+    
+    nonzero = binary_warped.nonzero()
+    nonzeroy = np.array(nonzero[0])
+    nonzerox = np.array(nonzero[1])
+    
+    leftx_current, rightx_current = leftx_base, rightx_base
+    left_lane_inds, right_lane_inds = [], []
+    
+    for window in range(nwindows):
+        win_y_low = binary_warped.shape[0] - (window + 1) * window_height
+        win_y_high = binary_warped.shape[0] - window * window_height
+        win_xleft_low, win_xleft_high = leftx_current - margin, leftx_current + margin
+        win_xright_low, win_xright_high = rightx_current - margin, rightx_current + margin
+        
+        cv2.rectangle(out_img, (win_xleft_low, win_y_low), (win_xleft_high, win_y_high), (0, 255, 0), 2)
+        cv2.rectangle(out_img, (win_xright_low, win_y_low), (win_xright_high, win_y_high), (0, 255, 0), 2)
+        
+        good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & 
+                          (nonzerox >= win_xleft_low) & (nonzerox < win_xleft_high)).nonzero()[0]
+        good_right_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) & 
+                           (nonzerox >= win_xright_low) & (nonzerox < win_xright_high)).nonzero()[0]
+        
+        left_lane_inds.append(good_left_inds)
+        right_lane_inds.append(good_right_inds)
+        
+        if len(good_left_inds) > minpix: leftx_current = int(np.mean(nonzerox[good_left_inds]))
+        if len(good_right_inds) > minpix: rightx_current = int(np.mean(nonzerox[good_right_inds]))
+            
+    left_lane_inds = np.concatenate(left_lane_inds) if len(left_lane_inds) > 0 else np.array([])
+    right_lane_inds = np.concatenate(right_lane_inds) if len(right_lane_inds) > 0 else np.array([])
+    
+    out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [0, 0, 255]
+    out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [255, 0, 0]
+    
+    leftx, lefty = nonzerox[left_lane_inds], nonzeroy[left_lane_inds]
+    rightx, righty = nonzerox[right_lane_inds], nonzeroy[right_lane_inds]
+    
+    return leftx, lefty, rightx, righty, out_img
+
+def fit_polynomial(img_height, leftx, lefty, rightx, righty, out_img):
+    left_fit, right_fit = None, None
+    left_fitx, right_fitx = None, None
+    ploty = np.linspace(0, img_height - 1, img_height)
+
+    if len(leftx) > 10:
+        left_fit = np.polyfit(lefty, leftx, 2)
+        left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+        pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))], np.int32)
+        cv2.polylines(out_img, pts_left, False, (0, 255, 255), 4)
+
+    if len(rightx) > 10:
+        right_fit = np.polyfit(righty, rightx, 2)
+        right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+        pts_right = np.array([np.transpose(np.vstack([right_fitx, ploty]))], np.int32)
+        cv2.polylines(out_img, pts_right, False, (0, 255, 255), 4)
+
+    return left_fit, right_fit, left_fitx, right_fitx, ploty, out_img
+
+
+if __name__ == "__main__":
+    cap = cv2.VideoCapture('test6.mp4') 
+    
+    prev_vp = None
+    view_mode = ord('6') # Mặc định mở ở Dashboard tổng hợp
+    THRESHOLD_VALUE = 105 
+    static_bottom_y = int(FRAME_HEIGHT * BOTTOM_Y_PERCENTAGE)
+
+    print("🚀 ĐÃ KÍCH HOẠT HỆ THỐNG GIAO DIỆN FULL TÍNH NĂNG!")
+    print("[1] Canny Edges (Viền Canny)")
+    print("[2] Dynamic ROI (Vùng ROI động)")
+    print("[3] Vanishing Point (Điểm tụ)")
+    print("[4] Ảnh BEV (Bird's Eye View)")
+    print("[5] Biểu đồ Histogram")
+    print("[6] Dashboard (Histogram + Sliding Window + Polynomial)")
+
+    while True:
+        ret, frame = cap.read()
+        if not ret: 
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            continue
+        
+        frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
+        
+        base_mask = get_base_mask(FRAME_WIDTH, FRAME_HEIGHT, static_bottom_y)
+        final_mask, gamma_val, mean_bright = process_frame_pipeline(frame, threshold=THRESHOLD_VALUE)
+        
+        edges = cv2.Canny(final_mask, 50, 150)
+        masked_edges = cv2.bitwise_and(edges, base_mask)
+        lines = cv2.HoughLinesP(masked_edges, 1, np.pi/180, threshold=40, minLineLength=15, maxLineGap=40)
+        left_lines, right_lines = classify(lines, FRAME_WIDTH)
+        vp = find_vanishing_point(left_lines, right_lines, FRAME_WIDTH, FRAME_HEIGHT)
+        
+        if vp is not None:
+            if prev_vp is None: prev_vp = vp
+            else:
+                dist = math.hypot(vp[0] - prev_vp[0], vp[1] - prev_vp[1])
+                alpha = min(0.8, max(0.05, dist / 200.0))
+                vp = (int(alpha * vp[0] + (1 - alpha) * prev_vp[0]), 
+                      int(alpha * vp[1] + (1 - alpha) * prev_vp[1]))
+                prev_vp = vp
+        else:
+            if prev_vp is not None: vp = prev_vp
+                
+        polygon = get_roi_polygon(FRAME_WIDTH, FRAME_HEIGHT, vp, static_bottom_y)
+        
+        # --- LUỒNG DỮ LIỆU NÂNG CAO ---
+        clean_binary = cv2.bitwise_and(final_mask, base_mask)
+        warped_mask, M, Minv = bird_eye_view(clean_binary)
+        histogram, leftx_base, rightx_base = get_histogram_peaks(warped_mask)
+        leftx, lefty, rightx, righty, sliding_window_img = sliding_window(warped_mask, leftx_base, rightx_base)
+        
+        left_fit, right_fit, left_fitx, right_fitx, ploty, poly_img = fit_polynomial(
+            warped_mask.shape[0], leftx, lefty, rightx, righty, sliding_window_img)
+        
+        # ---------------------------------------------------------
+        # CHUYỂN MẠCH GIAO DIỆN HIỂN THỊ
+        # ---------------------------------------------------------
+        display_frame = np.zeros_like(frame)
+
+        if view_mode == ord('1'):
+            display_frame = cv2.cvtColor(masked_edges, cv2.COLOR_GRAY2BGR)
+            cv2.putText(display_frame, "1. Masked Canny Edges", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+
+        elif view_mode == ord('2'):
+            black_mask = np.zeros_like(frame)
+            cv2.fillPoly(black_mask, [polygon], (255, 255, 255))
+            display_frame = cv2.bitwise_and(frame, black_mask)
+            cv2.polylines(display_frame, [polygon], True, (0, 255, 0), 2) 
+            cv2.putText(display_frame, "2. Dynamic ROI", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+
+        elif view_mode == ord('3'):
+            display_frame = frame.copy()
+            if lines is not None:
+                for line in lines:
+                    x1, y1, x2, y2 = line[0]
+                    if x1==x2: continue
+                    m = (y2-y1)/(x2-x1)
+                    if abs(m)<0.5 or abs(m)>2.5: continue
+                    color = (255, 0, 0) if m < 0 else (0, 0, 255)
+                    cv2.line(display_frame, (x1, y1), (x2, y2), color, 4)
+                    if vp is not None:
+                        cv2.line(display_frame, (x2, y2), vp, (0, 255, 0), 1)
+            if vp is not None:
+                cv2.circle(display_frame, vp, 10, (0, 255, 255), -1)
+            cv2.putText(display_frame, "3. Vanishing Point & Hough Lines", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+
+        elif view_mode == ord('4'):
+            display_frame = cv2.cvtColor(warped_mask, cv2.COLOR_GRAY2BGR)
+            cv2.putText(display_frame, "4. Bird's Eye View (BEV)", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+
+        elif view_mode == ord('5'):
+            display_frame = draw_matplotlib_style_dashboard(warped_mask, histogram, leftx_base, rightx_base)
+
+        elif view_mode == ord('6'):
+            hist_visual = draw_matplotlib_style_dashboard(warped_mask, histogram, leftx_base, rightx_base)
+            h_hist = hist_visual.shape[0]
+            sw_resized = cv2.resize(poly_img, (int(h_hist * FRAME_WIDTH / FRAME_HEIGHT), h_hist))
+            
+            combined = np.hstack((hist_visual, sw_resized))
+            display_frame = cv2.resize(combined, (1400, 700))
+        # Thông số chung cho các chế độ không phải Dashboard
+        if view_mode not in [ord('5'), ord('6')]: 
+            info_text = f"Luma: {mean_bright:.1f} | Gamma: {gamma_val:.2f}"
+            cv2.putText(display_frame, info_text, (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+        cv2.imshow("Advanced LDW Pipeline", display_frame)
+
+        key = cv2.waitKey(30) & 0xFF
+        if key == ord('q'): 
+            break
+        elif key in [ord('1'), ord('2'), ord('3'), ord('4'), ord('5'), ord('6')]:
+            view_mode = key 
+
+    cap.release()
+    cv2.destroyAllWindows()
+</file>
+
+<file path="testing_code/ROI simulation">
+import cv2
+import numpy as np
+import math
+
+cap = cv2.VideoCapture('challenge_video.mp4')
+frame_count = 0
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Đã phát hết video, tự động lặp lại...")
+        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        continue
+    frame_count += 1
+
+    frame = cv2.resize(frame, (400, 300))
+    height, width = frame.shape[:2]
+
+    frame1 = frame.copy()
+    frame2 = frame.copy()
+    frame3 = frame.copy()
+
+    #Polygon Masking
+    pts_static = np.array([[40, height], [160, 180], [240, 180], [360, height]], np.int32)
+    cv2.polylines(frame1, [pts_static], True, (0, 0, 255), 3)
+    cv2.putText(frame1, "1. Static ROI", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+
+    #Dynamic ROI
+    vp_y = int(180 + 30 * math.sin(frame_count * 0.1)) 
+    pts_dyn = np.array([[40, height], [160, vp_y + 20], [240, vp_y + 20], [360, height]], np.int32)
+    cv2.polylines(frame2, [pts_dyn], True, (0, 255, 0), 3)
+    cv2.circle(frame2, (width//2, vp_y), 6, (255, 0, 0), -1)
+    cv2.putText(frame2, "2. Dynamic ROI", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+    #Kalman ROI
+    overlay = frame3.copy()
+    cv2.line(overlay, (150, 180), (60, height), (0, 255, 255), 45)
+    cv2.line(overlay, (250, 180), (340, height), (0, 255, 255), 45)
+    
+    cv2.addWeighted(overlay, 0.4, frame3, 0.6, 0, frame3)
+    cv2.putText(frame3, "3. Kalman ROI", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+
+
+    combined_frames = np.hstack((frame1, frame2, frame3))
+
+    cv2.imshow("Mo phong 3 Thuat toan ROI", combined_frames)
+
+    if cv2.waitKey(30) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+</file>
+
+<file path="testing_code/ROI_tuner.py">
+import cv2
+import numpy as np
+from config import FRAME_WIDTH, FRAME_HEIGHT, BOTTOM_Y_PERCENTAGE
+def nothing(x):
+    pass
+def main():
+    # Thay đổi đường dẫn video test của bạn tại đây
+    video_path = 'VIDEO_GOC.mp4'
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print("Lỗi: Không thể mở video.")
+        return
+    window_name = "Dynamic ROI & BEV Tuner (Sync with step2 & step3)"
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name, 1280, 450)
+    # 1. Thanh trượt giả lập tọa độ Điểm tụ (Vanishing Point)
+    cv2.createTrackbar('VP X', window_name, FRAME_WIDTH // 2, FRAME_WIDTH, nothing)
+    cv2.createTrackbar('VP Y', window_name, int(FRAME_HEIGHT * 0.6), FRAME_HEIGHT, nothing)
+    # 2. Thanh trượt thông số hình học Dynamic ROI (Khớp 100% với config.py và step2)
+    cv2.createTrackbar('ROI Offset Y', window_name, 30, 100, nothing)
+    cv2.createTrackbar('Top Half W', window_name, 45, 200, nothing)
+    cv2.createTrackbar('Bot Offset L', window_name, 210, 400, nothing)
+    cv2.createTrackbar('Bot Offset R', window_name, 210, 400, nothing)
+    # 3. Thanh trượt thông số khoảng cách biên BEV (Áp dụng cho step3)
+    # Mặc định lấy 200 theo config.py của bạn
+    cv2.createTrackbar('BEV Dst X', window_name, 200, 320, nothing)
+    is_paused = False
+    print("=== HƯỚNG DẪN SỬ DỤNG DYNAMIC ROI TUNER ===")
+    print("- Màn hình TRÁI: Vùng ROI bám theo Điểm tụ.")
+    print("- Màn hình PHẢI: Kết quả góc nhìn chim bay (BEV).")
+    print("- MỤC TIÊU: Chỉnh 'BEV Dst X', 'Top Half W', 'Bot Offset...' để 2 vạch song song.")
+    print("- Phím 'p' để Tạm dừng/Phát tiếp video | 'q' để In thông số và Thoát.")
+    print("===========================================")
+    while True:
+        if not is_paused:
+            ret, frame = cap.read()
+            if not ret:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                continue
+            frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
+        height, width = frame.shape[:2]
+        bottom_y = int(height * BOTTOM_Y_PERCENTAGE)
+        # Lấy giá trị từ thanh trượt
+        vp_x = cv2.getTrackbarPos('VP X', window_name)
+        vp_y = cv2.getTrackbarPos('VP Y', window_name)
+        roi_offset_y = cv2.getTrackbarPos('ROI Offset Y', window_name)
+        top_half_w = cv2.getTrackbarPos('Top Half W', window_name)
+        bot_offset_l = cv2.getTrackbarPos('Bot Offset L', window_name)
+        bot_offset_r = cv2.getTrackbarPos('Bot Offset R', window_name)
+        bev_dst_x = cv2.getTrackbarPos('BEV Dst X', window_name)
+        # Tính toán tọa độ đỉnh của hình thang ROI y hệt step2_dynamic_roi.py
+        top_y = min(max(vp_y + roi_offset_y, 0), height)
+        pt_bl = [vp_x - bot_offset_l, bottom_y]   # Đáy dưới trái
+        pt_tl = [vp_x - top_half_w, top_y]        # Đỉnh trên trái
+        pt_tr = [vp_x + top_half_w, top_y]        # Đỉnh trên phải
+        pt_br = [vp_x + bot_offset_r, bottom_y]   # Đáy dưới phải
+        polygon = np.array([[pt_bl, pt_tl, pt_tr, pt_br]], np.int32)
+        # ==========================================
+        # XỬ LÝ MÀN HÌNH TRÁI (HIỂN THỊ ROI ĐỘNG)
+        # ==========================================
+        left_display = frame.copy()
+        # Đánh dấu Điểm tụ giả lập
+        cv2.circle(left_display, (vp_x, vp_y), 5, (0, 0, 255), -1)
+        # Hiệu ứng làm tối vùng ngoài hình thang
+        mask = np.zeros_like(frame)
+        cv2.fillPoly(mask, polygon, (255, 255, 255))
+        dark_frame = cv2.addWeighted(left_display, 0.3, np.zeros_like(left_display), 0.7, 0)
+        roi_focus = cv2.bitwise_and(left_display, mask)
+        left_display = cv2.add(dark_frame, roi_focus)
+        cv2.polylines(left_display, polygon, True, (0, 255, 255), 2)
+        cv2.putText(left_display, "1. Dynamic ROI (step2)", (15, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+        # ==========================================
+        # XỬ LÝ MÀN HÌNH PHẢI (HIỂN THỊ BEV PREVIEW)
+        # ==========================================
+        # Trình tự điểm Nguồn (Src) giống hệt step3_birdseye_view.py
+        src_pts = np.float32([pt_bl, pt_tl, pt_tr, pt_br])
+        # Trình tự điểm Đích (Dst) với tham số BEV_DST_OFFSET_X tùy chỉnh
+        dst_pts = np.float32([
+            [bev_dst_x, height],          # Tương ứng với pt_bl
+            [bev_dst_x, 0],               # Tương ứng với pt_tl
+            [width - bev_dst_x, 0],       # Tương ứng với pt_tr
+            [width - bev_dst_x, height]   # Tương ứng với pt_br
+        ])
+        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        right_display = cv2.warpPerspective(frame, M, (width, height), flags=cv2.INTER_LINEAR)
+        cv2.putText(right_display, "2. Bird's Eye View (step3)", (15, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        # Trạng thái tạm dừng
+        if is_paused:
+            cv2.putText(left_display, "PAUSED - 'p' to Resume", (15, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        # Ghép 2 màn hình
+        combined = np.hstack((left_display, right_display))
+        cv2.imshow(window_name, combined)
+        # Xử lý phím bấm
+        delay = 1 if not is_paused else 30
+        key = cv2.waitKey(delay) & 0xFF
+        if key == ord('q'):
+            print("\n=== CẬP NHẬT THÔNG SỐ VÀO CONFIG.PY ===")
+            print(f"ROI_OFFSET_Y = {roi_offset_y}")
+            print(f"ROI_TOP_HALF_WIDTH = {top_half_w}")
+            print(f"ROI_BOTTOM_OFFSET_LEFT = {bot_offset_l}")
+            print(f"ROI_BOTTOM_OFFSET_RIGHT = {bot_offset_r}")
+            print(f"BEV_DST_OFFSET_X = {bev_dst_x}")
+            print("=======================================\n")
+            break
+        elif key == ord('p'):
+            is_paused = not is_paused
+    cap.release()
+    cv2.destroyAllWindows()
+if __name__ == '__main__':
+    main()
+</file>
+
+<file path=".gitignore">
+### C ###
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#pdm.lock
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm.fming.dev/#use-with-ide
+.pdm.toml
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
+
+### Python Patch ###
+# Poetry local configuration file - https://python-poetry.org/docs/configuration/#local-configuration
+poetry.toml
+
+# ruff
+.ruff_cache/
+
+# LSP config files
+pyrightconfig.json
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+Beta
+0 / 10
+used queries
+1
+</file>
+
+<file path="pi_adas_log.csv">
+Frame_ID,Instant_FPS,Radius_m,Offset_m,Direction
+1,4.1,-1,0.0,Unknown
+2,30.7,-1,0.0,Unknown
+3,44.9,-1,0.0,Unknown
+4,36.8,-1,0.0,Unknown
+5,6.8,46502.5,0.06,Inside Left
+6,71.7,48780.4,0.06,Inside Left
+7,57.9,159056.7,0.06,Inside Left
+8,60.2,42675.1,0.07,Inside Left
+9,58.1,50514.4,0.07,Inside Left
+10,52.5,64734.3,0.07,Inside Left
+11,35.0,47371.8,0.07,Inside Left
+12,54.4,12754.5,0.07,Inside Left
+13,50.7,8328.6,0.07,Inside Left
+14,56.9,7184.6,0.07,Inside Left
+15,61.4,6265.5,0.07,Inside Left
+16,63.2,5651.8,0.07,Inside Left
+17,65.5,5024.6,0.07,Inside Left
+18,50.1,4819.9,0.07,Inside Left
+19,56.8,5136.1,0.07,Inside Left
+20,61.6,5398.4,0.07,Inside Left
+21,55.4,5384.2,0.07,Inside Left
+22,44.7,5267.0,0.07,Inside Left
+23,43.8,5046.7,0.07,Inside Left
+24,48.6,4934.3,0.07,Inside Left
+25,48.4,4712.3,0.07,Inside Left
+26,60.8,4286.7,0.08,Inside Left
+27,63.0,4272.7,0.08,Inside Left
+28,65.3,3767.5,0.09,Inside Left
+29,64.6,3666.8,0.09,Inside Left
+30,61.4,3521.7,0.09,Inside Left
+31,53.7,3395.0,0.09,Inside Left
+32,44.9,3335.9,0.09,Inside Left
+33,50.8,3358.1,0.08,Inside Left
+34,56.4,3585.9,0.08,Inside Left
+35,48.5,3532.7,0.08,Inside Left
+36,48.6,4577.4,0.07,Inside Left
+37,38.2,6021.9,0.06,Inside Left
+38,39.5,8798.3,0.06,Inside Left
+39,42.0,8752.9,0.06,Inside Left
+40,44.8,6959.2,0.06,Inside Left
+41,46.4,5809.8,0.06,Inside Left
+42,51.5,5435.0,0.06,Inside Left
+43,44.9,5039.7,0.06,Inside Left
+44,50.4,4281.8,0.07,Inside Left
+45,54.3,4232.5,0.07,Inside Left
+46,49.2,4513.7,0.07,Inside Left
+47,50.4,5134.0,0.06,Inside Left
+48,44.5,5670.2,0.06,Inside Left
+49,50.1,5862.3,0.06,Inside Left
+50,50.7,6094.8,0.06,Inside Left
+51,51.3,6314.1,0.06,Inside Left
+52,55.2,6613.2,0.06,Inside Left
+53,58.6,7376.5,0.06,Inside Left
+54,59.9,7694.2,0.07,Inside Left
+55,59.9,7903.9,0.07,Inside Left
+56,45.7,7604.3,0.07,Inside Left
+57,40.0,7423.6,0.07,Inside Left
+58,46.7,8493.1,0.07,Inside Left
+59,55.1,10767.3,0.06,Inside Left
+60,53.5,11962.2,0.06,Inside Left
+61,64.6,12002.0,0.06,Inside Left
+62,40.9,43069.8,0.06,Inside Left
+63,32.4,65270.2,0.06,Inside Left
+64,22.3,16624.4,0.05,Inside Left
+65,46.1,11322.9,0.05,Inside Left
+66,55.8,15111.0,0.05,Inside Left
+67,64.2,16708.7,0.05,Inside Left
+68,71.2,12690.3,0.05,Inside Left
+69,55.9,39237.5,0.06,Inside Left
+70,46.0,11894.9,0.06,Inside Left
+71,59.5,8236.2,0.06,Inside Left
+72,63.5,6745.4,0.06,Inside Left
+73,51.4,6200.7,0.06,Inside Left
+74,73.3,5160.9,0.06,Inside Left
+75,70.0,4645.7,0.06,Inside Left
+76,64.1,4846.1,0.06,Inside Left
+77,75.8,4583.4,0.06,Inside Left
+78,71.4,4443.2,0.06,Inside Left
+79,81.9,4268.3,0.06,Inside Left
+80,73.2,4257.3,0.06,Inside Left
+81,63.2,3648.8,0.07,Inside Left
+82,62.5,3470.5,0.07,Inside Left
+83,59.3,3296.5,0.07,Inside Left
+84,79.1,3271.0,0.06,Inside Left
+85,78.1,3257.6,0.06,Inside Left
+86,81.0,3615.0,0.06,Inside Left
+87,78.3,3841.5,0.05,Inside Left
+88,55.2,4839.5,0.03,Inside Left
+89,59.4,5640.5,0.03,Inside Left
+90,58.2,6274.5,0.02,Inside Left
+91,63.3,6206.1,0.02,Inside Left
+92,63.6,7242.4,0.02,Inside Left
+93,54.1,6740.8,0.02,Inside Left
+94,60.4,6350.7,0.01,Inside Left
+95,65.3,6528.1,0.01,Inside Left
+96,60.8,5147.6,0.02,Inside Left
+97,65.4,6881.5,0.01,Inside Left
+98,45.5,7598.5,0.01,Inside Left
+99,67.0,7173.5,0.01,Inside Left
+100,71.5,5684.4,0.01,Inside Left
+101,66.8,4992.4,0.01,Inside Left
+102,63.6,4739.2,0.0,Inside Left
+103,74.1,5119.1,0.0,Inside Right
+104,70.0,4212.9,0.0,Inside Right
+105,66.3,3599.3,0.0,Inside Left
+106,48.7,3606.5,0.0,Inside Right
+107,65.6,3604.4,0.0,Inside Right
+108,67.6,3541.6,0.0,Inside Left
+109,75.6,3487.5,0.0,Inside Right
+110,84.2,3461.1,0.0,Inside Right
+111,74.8,3607.2,0.0,Inside Right
+112,75.4,3944.6,0.0,Inside Right
+113,71.2,4163.2,0.01,Inside Right
+114,79.9,4296.0,0.01,Inside Right
+115,57.2,4420.0,0.01,Inside Right
+116,85.7,4476.7,0.01,Inside Right
+117,80.4,4863.3,0.01,Inside Right
+118,79.3,3367.6,0.01,Inside Right
+119,84.9,3586.4,0.01,Inside Right
+120,95.7,3655.8,0.01,Inside Right
+121,81.7,3707.9,0.01,Inside Right
+122,72.5,3795.3,0.01,Inside Right
+123,70.4,4337.8,0.02,Inside Right
+124,66.3,5090.9,0.02,Inside Right
+125,68.9,6582.7,0.03,Inside Right
+126,74.1,6630.2,0.03,Inside Right
+127,71.9,6916.2,0.02,Inside Right
+128,75.4,9421.2,0.03,Inside Right
+129,83.9,13602.8,0.03,Inside Right
+130,75.0,13571.9,0.03,Inside Right
+131,74.7,127373.5,0.02,Inside Right
+132,82.9,14552.2,0.02,Inside Right
+133,60.4,9131.5,0.01,Inside Right
+134,71.9,9123.3,0.01,Inside Right
+135,75.9,8260.3,0.01,Inside Right
+136,82.5,8563.3,0.01,Inside Right
+137,85.6,8911.3,0.01,Inside Right
+138,67.5,8856.1,0.01,Inside Right
+139,74.7,8795.2,0.0,Inside Right
+140,77.2,8444.1,0.0,Inside Right
+141,70.7,8182.0,0.0,Inside Left
+142,72.5,7930.3,0.0,Inside Left
+143,79.1,7758.2,0.01,Inside Left
+144,65.0,7613.8,0.01,Inside Left
+145,77.9,9077.9,0.0,Inside Left
+146,87.0,10335.2,0.0,Inside Left
+147,77.5,10380.7,0.0,Inside Left
+148,72.9,10383.8,0.01,Inside Left
+149,68.8,19020.3,0.0,Inside Left
+150,72.0,35779.0,0.0,Inside Left
+151,63.9,21426.5,0.0,Inside Left
+152,60.5,9312.2,0.0,Inside Right
+153,74.9,7039.1,0.0,Inside Right
+154,80.7,6766.9,0.0,Inside Left
+155,60.9,6047.3,0.01,Inside Left
+156,64.2,5640.5,0.01,Inside Left
+157,69.6,5422.6,0.02,Inside Left
+158,81.7,5204.7,0.02,Inside Left
+159,73.9,5798.2,0.02,Inside Left
+160,66.5,6342.1,0.03,Inside Left
+161,67.9,7331.0,0.03,Inside Left
+162,67.1,9709.3,0.03,Inside Left
+163,74.2,20246.5,0.04,Inside Left
+164,78.2,123541.3,0.04,Inside Left
+165,67.5,930574.8,0.04,Inside Left
+166,74.5,90256.6,0.04,Inside Left
+167,72.7,87802.5,0.04,Inside Left
+168,68.8,27359.4,0.04,Inside Left
+169,79.7,26608.1,0.04,Inside Left
+170,59.1,28354.9,0.04,Inside Left
+171,74.4,29544.9,0.05,Inside Left
+172,71.6,21954.1,0.05,Inside Left
+173,65.7,22123.3,0.05,Inside Left
+174,60.1,9588.7,0.04,Inside Left
+175,58.9,9607.5,0.04,Inside Left
+176,60.5,9684.9,0.04,Inside Left
+177,36.6,11277.9,0.04,Inside Left
+178,45.9,10470.7,0.04,Inside Left
+179,59.4,10414.4,0.04,Inside Left
+180,63.0,9953.1,0.04,Inside Left
+181,56.7,9840.4,0.04,Inside Left
+182,58.7,9963.1,0.04,Inside Left
+183,53.1,33282.6,0.04,Inside Left
+184,46.5,31442.0,0.04,Inside Left
+185,65.4,57161.0,0.04,Inside Left
+186,62.3,17140.8,0.04,Inside Left
+187,55.4,9159.0,0.04,Inside Left
+188,60.1,7001.6,0.04,Inside Left
+189,47.9,5923.5,0.04,Inside Left
+190,61.1,5467.1,0.04,Inside Left
+191,56.2,5082.4,0.04,Inside Left
+192,60.9,4943.5,0.04,Inside Left
+193,64.1,5112.6,0.03,Inside Left
+194,69.8,5292.1,0.03,Inside Left
+195,65.0,5462.4,0.03,Inside Left
+196,68.1,5631.8,0.03,Inside Left
+197,66.1,5717.8,0.02,Inside Left
+198,61.8,5907.0,0.02,Inside Left
+199,66.0,5927.7,0.02,Inside Left
+200,71.9,6015.4,0.02,Inside Left
+201,74.6,7514.7,0.01,Inside Left
+202,72.3,12522.3,0.0,Inside Left
+203,83.6,37003.1,0.0,Inside Right
+204,51.6,22222.4,0.01,Inside Right
+205,44.9,10192.2,0.02,Inside Right
+206,23.3,7455.0,0.02,Inside Right
+207,23.8,7565.4,0.02,Inside Right
+208,32.2,7146.8,0.03,Inside Right
+209,18.5,9228.6,0.02,Inside Right
+210,6.8,16477.6,0.02,Inside Right
+211,24.3,36435.5,0.02,Inside Right
+212,36.0,37591.4,0.01,Inside Right
+213,35.7,14425.5,0.01,Inside Right
+214,32.1,9320.8,0.01,Inside Right
+215,21.4,8925.8,0.01,Inside Right
+216,35.8,10087.7,0.01,Inside Right
+217,36.5,10973.1,0.01,Inside Right
+218,23.3,12214.9,0.01,Inside Right
+219,37.2,13214.6,0.01,Inside Right
+220,21.4,12320.2,0.01,Inside Right
+221,29.8,10679.4,0.01,Inside Right
+222,33.3,11099.8,0.01,Inside Right
+223,30.9,11824.4,0.01,Inside Right
+224,31.4,15577.2,0.01,Inside Right
+225,35.8,21891.0,0.01,Inside Right
+226,39.4,21900.0,0.01,Inside Right
+227,48.0,22019.0,0.02,Inside Right
+228,38.0,22170.4,0.02,Inside Right
+229,45.6,9607.3,0.03,Inside Right
+230,36.9,7081.1,0.03,Inside Right
+231,38.3,6472.8,0.04,Inside Right
+232,40.2,6652.1,0.04,Inside Right
+233,41.9,7299.8,0.04,Inside Right
+234,42.0,8013.9,0.05,Inside Right
+235,46.9,8848.5,0.05,Inside Right
+236,51.3,10262.3,0.05,Inside Right
+237,51.7,11243.5,0.04,Inside Right
+238,47.7,12037.1,0.04,Inside Right
+239,41.3,13835.3,0.04,Inside Right
+240,42.5,15571.0,0.04,Inside Right
+241,41.5,16637.7,0.03,Inside Right
+242,41.2,17172.5,0.03,Inside Right
+243,37.3,17197.5,0.03,Inside Right
+244,24.9,27791.2,0.03,Inside Right
+245,28.5,191323.7,0.03,Inside Right
+246,39.4,32650.3,0.03,Inside Right
+247,42.1,21411.2,0.03,Inside Right
+248,36.0,18062.0,0.03,Inside Right
+249,38.4,18220.2,0.03,Inside Right
+250,39.8,17096.6,0.03,Inside Right
+251,40.8,15777.8,0.03,Inside Right
+252,37.6,14877.9,0.03,Inside Right
+253,37.2,12064.6,0.03,Inside Right
+254,37.7,10117.1,0.02,Inside Right
+255,41.9,10071.9,0.02,Inside Right
+256,46.7,10182.3,0.02,Inside Right
+257,39.5,10429.2,0.02,Inside Right
+258,40.7,11243.4,0.02,Inside Right
+259,37.7,12020.7,0.02,Inside Right
+260,36.6,14940.4,0.03,Inside Right
+261,38.4,22901.2,0.04,Inside Right
+262,31.7,28514.5,0.04,Inside Right
+263,34.7,29020.6,0.04,Inside Right
+264,43.1,30234.1,0.04,Inside Right
+265,38.7,40605.6,0.04,Inside Right
+266,34.5,55135.7,0.04,Inside Right
+267,31.7,46668.3,0.04,Inside Right
+268,34.1,33934.9,0.03,Inside Right
+269,36.5,31383.0,0.03,Inside Right
+270,35.3,37978.9,0.03,Inside Right
+271,33.6,52079.6,0.03,Inside Right
+272,29.7,101824.5,0.03,Inside Right
+273,34.8,304279.1,0.03,Inside Right
+274,36.2,419114.8,0.03,Inside Right
+275,38.5,82831.2,0.03,Inside Right
+276,25.8,87512.3,0.03,Inside Right
+277,38.6,81303.2,0.02,Inside Right
+278,31.0,76734.0,0.02,Inside Right
+279,44.0,131011.6,0.02,Inside Right
+280,42.9,132451.0,0.02,Inside Right
+281,36.2,85848.6,0.02,Inside Right
+282,38.8,56987.0,0.02,Inside Right
+283,42.2,42690.1,0.02,Inside Right
+284,39.0,33287.6,0.02,Inside Right
+285,36.7,27369.1,0.02,Inside Right
+286,44.0,27387.6,0.02,Inside Right
+287,41.4,29038.9,0.02,Inside Right
+288,43.4,30782.3,0.01,Inside Right
+289,38.7,31981.4,0.01,Inside Right
+290,42.7,40157.7,0.01,Inside Right
+291,44.5,135995.4,0.01,Inside Right
+292,42.7,67408.6,0.01,Inside Right
+293,41.7,51165.9,0.01,Inside Right
+294,43.8,44228.3,0.01,Inside Right
+295,43.7,45986.8,0.01,Inside Right
+296,40.5,55784.5,0.01,Inside Right
+297,42.0,137778.6,0.0,Inside Right
+298,37.6,237087.6,0.0,Inside Right
+299,41.9,96832.4,0.0,Inside Right
+300,38.5,55182.1,0.0,Inside Right
+301,42.2,46422.7,0.0,Inside Right
+302,42.2,43515.4,0.0,Inside Right
+303,38.0,46807.4,0.0,Inside Left
+304,40.9,55804.8,0.0,Inside Left
+305,37.9,90336.2,0.0,Inside Left
+306,45.1,174910.5,0.0,Inside Left
+307,43.2,117894.9,0.0,Inside Left
+308,35.7,74182.7,0.01,Inside Left
+309,38.6,55334.8,0.01,Inside Left
+310,40.0,43442.7,0.01,Inside Left
+311,40.6,40946.4,0.01,Inside Left
+312,42.0,43540.9,0.01,Inside Left
+313,43.3,76084.4,0.01,Inside Left
+314,44.6,182866.2,0.01,Inside Left
+315,42.5,336629.8,0.01,Inside Left
+316,42.5,127146.3,0.01,Inside Left
+317,39.0,62486.3,0.02,Inside Left
+318,47.1,80058.0,0.02,Inside Left
+319,43.8,99980.0,0.02,Inside Left
+320,46.9,292925.0,0.02,Inside Left
+321,45.5,92467.9,0.02,Inside Left
+322,44.3,92042.5,0.02,Inside Left
+323,44.1,93276.0,0.02,Inside Left
+324,43.4,88781971.1,0.02,Inside Left
+325,40.3,128901.8,0.02,Inside Left
+326,44.5,126889.3,0.02,Inside Left
+327,43.5,71564.3,0.02,Inside Left
+328,45.1,102464.9,0.02,Inside Left
+329,47.5,148528.3,0.03,Inside Left
+330,44.2,233445.7,0.03,Inside Left
+331,42.3,202543.9,0.03,Inside Left
+332,46.9,845529.5,0.03,Inside Left
+333,46.3,222535.5,0.03,Inside Left
+334,49.7,144729.4,0.03,Inside Left
+335,40.4,125831.0,0.03,Inside Left
+336,40.5,87659.8,0.03,Inside Left
+337,47.1,88959.0,0.03,Inside Left
+338,40.5,72592.7,0.03,Inside Left
+339,39.4,70510.4,0.03,Inside Left
+340,43.5,45967.9,0.03,Inside Left
+341,44.7,28261.0,0.04,Inside Left
+342,47.4,21828.3,0.04,Inside Left
+343,47.1,18445.6,0.04,Inside Left
+344,41.1,15709.6,0.04,Inside Left
+345,44.6,14528.5,0.04,Inside Left
+346,49.4,14452.1,0.04,Inside Left
+347,46.5,15073.2,0.04,Inside Left
+348,49.6,17643.9,0.04,Inside Left
+349,46.3,18472.1,0.04,Inside Left
+350,43.9,26652.9,0.04,Inside Left
+351,48.7,48012.4,0.04,Inside Left
+352,49.6,233320.1,0.04,Inside Left
+353,32.0,56274.9,0.04,Inside Left
+354,44.3,255677.7,0.04,Inside Left
+355,34.2,37552.7,0.04,Inside Left
+356,37.4,18913.5,0.04,Inside Left
+357,44.6,13592.2,0.03,Inside Left
+358,41.7,10820.6,0.03,Inside Left
+359,43.9,9263.1,0.03,Inside Left
+360,44.4,8837.7,0.03,Inside Left
+361,46.7,8303.0,0.03,Inside Left
+362,42.0,7855.5,0.03,Inside Left
+363,42.8,7494.5,0.03,Inside Left
+364,43.1,7207.3,0.03,Inside Left
+365,47.1,7189.8,0.03,Inside Left
+366,39.5,7673.9,0.03,Inside Left
+367,40.5,7901.2,0.03,Inside Left
+368,43.0,8271.3,0.03,Inside Left
+369,46.0,8741.9,0.03,Inside Left
+370,46.4,9565.5,0.03,Inside Left
+371,46.1,10353.4,0.03,Inside Left
+372,40.2,12375.3,0.03,Inside Left
+373,43.4,13602.6,0.03,Inside Left
+374,37.8,14828.9,0.03,Inside Left
+375,40.0,16396.6,0.03,Inside Left
+376,32.3,20159.1,0.03,Inside Left
+377,40.6,22590.7,0.03,Inside Left
+378,47.1,30611.5,0.03,Inside Left
+379,53.2,39607.3,0.03,Inside Left
+380,50.7,71383.2,0.03,Inside Left
+381,47.5,298509.3,0.03,Inside Left
+382,53.2,185847.3,0.03,Inside Left
+383,53.6,80956.7,0.03,Inside Left
+384,51.2,47973.3,0.02,Inside Left
+385,56.0,32656.4,0.02,Inside Left
+386,57.2,30878.4,0.02,Inside Left
+387,49.6,33777.2,0.02,Inside Left
+388,44.0,36281.6,0.02,Inside Left
+389,49.7,39619.4,0.02,Inside Left
+390,45.7,51678.2,0.02,Inside Left
+391,49.5,59856.9,0.02,Inside Left
+392,47.1,124623.9,0.01,Inside Left
+393,45.1,297324.0,0.01,Inside Left
+394,47.3,125503.2,0.01,Inside Left
+395,46.5,69780.9,0.01,Inside Left
+396,45.6,45177.6,0.01,Inside Left
+397,49.3,37383.0,0.01,Inside Left
+398,39.8,31287.5,0.01,Inside Left
+399,46.7,26355.1,0.01,Inside Left
+400,49.4,23929.9,0.0,Inside Left
+401,45.6,21560.7,0.0,Inside Left
+402,40.7,23468.5,0.0,Inside Left
+403,54.0,26806.8,0.0,Inside Left
+404,55.4,29085.9,0.0,Inside Left
+405,54.9,28950.0,0.0,Inside Left
+406,56.9,34971.2,0.0,Inside Left
+407,51.0,51905.9,0.0,Inside Left
+408,55.3,110134.6,0.0,Inside Left
+409,54.8,538698.3,0.0,Inside Left
+410,57.9,137267.7,0.0,Inside Left
+411,58.4,95739.2,0.0,Inside Right
+412,53.4,48759.8,0.0,Inside Left
+413,44.6,39058.8,0.0,Inside Right
+414,58.5,40968.4,0.0,Inside Right
+415,52.3,42691.4,0.0,Inside Right
+416,54.9,45776.3,0.0,Inside Right
+417,53.7,50536.5,0.0,Inside Right
+418,57.3,50986.3,0.0,Inside Right
+419,58.9,53751.6,0.0,Inside Right
+420,60.7,64329.4,0.0,Inside Right
+421,61.3,64580.5,0.0,Inside Right
+422,61.6,59176.6,0.01,Inside Right
+423,52.9,53026.6,0.01,Inside Right
+424,58.6,45086.1,0.01,Inside Right
+425,62.0,40737.9,0.01,Inside Right
+426,55.8,36137.4,0.01,Inside Right
+427,55.5,32630.0,0.01,Inside Right
+428,56.0,28618.1,0.01,Inside Right
+429,58.9,26768.6,0.01,Inside Right
+430,57.1,25809.5,0.01,Inside Right
+431,62.2,24337.9,0.01,Inside Right
+432,59.6,24213.4,0.01,Inside Right
+433,54.8,23478.8,0.01,Inside Right
+434,50.8,23140.2,0.01,Inside Right
+435,62.8,25590.1,0.01,Inside Right
+436,57.0,29777.7,0.01,Inside Right
+437,54.3,36850.4,0.0,Inside Right
+438,58.4,62300.2,0.0,Inside Right
+439,57.7,156975.7,0.0,Inside Right
+440,59.8,381575.4,0.0,Inside Right
+441,59.5,95915.8,0.0,Inside Right
+442,56.6,58454.7,0.0,Inside Right
+443,64.9,54185.2,0.0,Inside Left
+444,61.1,53910.9,0.0,Inside Left
+445,60.9,55991.9,0.0,Inside Left
+446,55.6,124506.4,0.0,Inside Left
+447,62.7,151275.7,0.0,Inside Left
+448,57.3,85593.7,0.01,Inside Left
+449,59.6,57119.8,0.01,Inside Left
+450,58.8,49250.6,0.01,Inside Left
+451,61.2,39080.7,0.01,Inside Left
+452,66.0,36154.6,0.01,Inside Left
+453,64.8,35625.2,0.01,Inside Left
+454,62.4,45418.4,0.01,Inside Left
+455,60.8,55372.6,0.01,Inside Left
+456,63.6,227889.8,0.01,Inside Left
+457,65.3,47225.4,0.01,Inside Left
+458,65.7,45832.5,0.01,Inside Left
+459,65.1,44726.1,0.01,Inside Left
+460,62.1,45980.7,0.01,Inside Left
+461,60.2,51631.3,0.01,Inside Left
+462,58.6,73459.1,0.01,Inside Left
+463,57.9,128368.5,0.01,Inside Left
+464,61.3,176186.7,0.01,Inside Left
+465,63.2,227673.8,0.02,Inside Left
+466,63.0,297575.5,0.02,Inside Left
+467,67.2,240729.7,0.02,Inside Left
+468,61.8,39056.7,0.02,Inside Left
+469,62.8,33680.4,0.02,Inside Left
+470,65.0,32729.5,0.02,Inside Left
+471,52.4,32863.7,0.02,Inside Left
+472,59.7,29464.7,0.02,Inside Left
+473,60.1,26653.9,0.02,Inside Left
+474,64.1,30478.2,0.02,Inside Left
+475,60.0,72064.3,0.02,Inside Left
+476,64.4,94094.0,0.02,Inside Left
+477,58.0,47565.6,0.03,Inside Left
+478,62.7,37274.2,0.03,Inside Left
+479,63.5,34271.3,0.03,Inside Left
+480,65.8,40805.6,0.03,Inside Left
+481,63.6,37671.6,0.03,Inside Left
+482,64.5,29213.6,0.03,Inside Left
+483,58.5,23927.9,0.03,Inside Left
+484,61.4,20913.5,0.02,Inside Left
+485,63.2,20497.9,0.02,Inside Left
+486,66.3,19898.8,0.02,Inside Left
+487,70.7,19274.8,0.02,Inside Left
+488,62.7,19126.5,0.02,Inside Left
+489,62.6,20193.7,0.02,Inside Left
+490,62.9,23568.1,0.02,Inside Left
+491,65.0,31765.2,0.02,Inside Left
+492,58.7,41181.3,0.02,Inside Left
+493,67.8,89450.3,0.02,Inside Left
+494,68.0,83801.9,0.02,Inside Left
+495,53.6,108852.9,0.02,Inside Left
+496,69.7,646045.0,0.02,Inside Left
+497,61.4,75146.7,0.02,Inside Left
+498,58.0,44030.0,0.02,Inside Left
+499,68.1,33768.7,0.02,Inside Left
+500,63.3,25620.2,0.02,Inside Left
+501,62.7,23449.3,0.02,Inside Left
+502,59.3,22099.1,0.02,Inside Left
+503,59.4,22177.6,0.02,Inside Left
+504,65.8,24457.3,0.02,Inside Left
+505,59.1,29252.8,0.02,Inside Left
+506,65.4,42892.0,0.02,Inside Left
+507,66.1,71782.9,0.02,Inside Left
+508,69.6,182880.6,0.02,Inside Left
+509,70.9,374876.6,0.02,Inside Left
+510,65.6,620014.7,0.02,Inside Left
+511,65.1,328254.2,0.02,Inside Left
+512,59.4,178875.9,0.02,Inside Left
+513,65.1,83412.8,0.02,Inside Left
+514,66.0,59830.2,0.02,Inside Left
+515,62.2,51298.2,0.02,Inside Left
+516,64.7,59604.7,0.02,Inside Left
+517,71.3,69003.0,0.02,Inside Left
+518,67.9,84295.0,0.02,Inside Left
+519,49.9,123848.8,0.02,Inside Left
+520,60.0,625783.2,0.02,Inside Left
+521,50.2,661087.1,0.02,Inside Left
+522,48.3,64020.4,0.02,Inside Left
+523,54.6,65121.9,0.02,Inside Left
+524,55.0,69514.4,0.02,Inside Left
+525,56.9,72995.2,0.02,Inside Left
+526,51.1,137760.0,0.02,Inside Left
+527,52.9,160000.8,0.02,Inside Left
+528,55.2,107352.0,0.02,Inside Left
+529,53.9,102481.3,0.02,Inside Left
+530,51.7,95724.8,0.02,Inside Left
+531,44.5,74713.8,0.02,Inside Left
+532,49.4,83788.7,0.02,Inside Left
+533,45.0,80866.6,0.02,Inside Left
+534,49.8,54947.7,0.02,Inside Left
+535,40.9,85225.9,0.02,Inside Left
+536,54.3,153344.4,0.02,Inside Left
+537,52.3,332907.7,0.02,Inside Left
+538,46.2,269369.1,0.02,Inside Left
+539,54.7,225701.8,0.02,Inside Left
+540,54.6,193895.3,0.02,Inside Left
+541,50.8,172364.4,0.02,Inside Left
+542,47.6,153477.0,0.02,Inside Left
+543,54.6,112360.3,0.02,Inside Left
+544,56.8,77437.7,0.02,Inside Left
+545,56.1,84743.9,0.02,Inside Left
+546,54.1,91073.8,0.02,Inside Left
+547,54.8,98198.7,0.02,Inside Left
+548,53.4,195176.2,0.02,Inside Left
+549,50.4,108373.7,0.02,Inside Left
+550,50.7,80584.7,0.02,Inside Left
+551,47.9,72106.4,0.02,Inside Left
+552,49.8,63631.5,0.02,Inside Left
+553,52.2,46408.0,0.02,Inside Left
+554,46.9,43356.1,0.02,Inside Left
+555,49.2,43008.3,0.02,Inside Left
+556,56.2,36879.2,0.02,Inside Left
+557,35.4,32340.1,0.02,Inside Left
+558,53.3,29618.8,0.02,Inside Left
+559,50.5,27175.2,0.02,Inside Left
+560,52.0,26420.1,0.02,Inside Left
+561,51.3,25283.8,0.02,Inside Left
+562,54.9,26383.7,0.02,Inside Left
+563,54.3,29673.6,0.02,Inside Left
+564,56.0,34255.6,0.02,Inside Left
+565,50.6,41475.2,0.02,Inside Left
+566,51.5,51357.8,0.02,Inside Left
+567,44.5,61173.9,0.02,Inside Left
+568,50.1,93629.9,0.02,Inside Left
+569,49.1,142382.0,0.02,Inside Left
+570,49.4,4399841.5,0.02,Inside Left
+571,43.5,145909.4,0.02,Inside Left
+572,48.5,96058.2,0.02,Inside Left
+573,36.7,79762.9,0.02,Inside Left
+574,44.0,58536.4,0.02,Inside Left
+575,41.9,48400.6,0.02,Inside Left
+576,49.3,40474.7,0.02,Inside Left
+577,41.4,37078.5,0.02,Inside Left
+578,43.1,42907.1,0.02,Inside Left
+579,47.1,41438.7,0.02,Inside Left
+580,44.7,69229.7,0.02,Inside Left
+581,38.2,60625.0,0.02,Inside Left
+582,43.2,66871.2,0.02,Inside Left
+583,37.6,66990.1,0.02,Inside Left
+584,43.0,92446.2,0.02,Inside Left
+585,40.3,691941.9,0.02,Inside Left
+586,39.7,58778.9,0.02,Inside Left
+587,42.2,66472.8,0.03,Inside Left
+588,39.7,36959.4,0.02,Inside Left
+589,45.0,23834.2,0.03,Inside Left
+590,43.5,18406.0,0.03,Inside Left
+591,44.2,15970.3,0.03,Inside Left
+592,48.1,14511.8,0.03,Inside Left
+593,46.5,14353.0,0.03,Inside Left
+594,49.5,15020.1,0.03,Inside Left
+595,50.2,21338.9,0.03,Inside Left
+596,48.5,22114.8,0.04,Inside Left
+597,47.6,22524.4,0.04,Inside Left
+598,48.9,23351.4,0.04,Inside Left
+599,53.5,19586.9,0.04,Inside Left
+600,49.0,21869.0,0.04,Inside Left
+601,52.5,26879.4,0.04,Inside Left
+602,56.0,34054.9,0.04,Inside Left
+603,47.7,45117.2,0.04,Inside Left
+604,53.6,89423.4,0.04,Inside Left
+605,55.6,429550.3,0.04,Inside Left
+606,50.9,1040518.0,0.04,Inside Left
+607,56.7,98084.8,0.04,Inside Left
+608,55.7,48932.1,0.04,Inside Left
+609,36.9,37904.2,0.04,Inside Left
+610,50.4,26475.8,0.04,Inside Left
+611,51.3,21870.2,0.04,Inside Left
+612,56.6,17282.6,0.04,Inside Left
+613,60.2,16030.1,0.04,Inside Left
+614,54.7,16226.9,0.04,Inside Left
+615,50.2,18037.7,0.04,Inside Left
+616,49.6,18947.1,0.04,Inside Left
+617,53.9,23414.5,0.05,Inside Left
+618,45.0,27261.1,0.05,Inside Left
+619,44.7,38642.1,0.05,Inside Left
+620,40.1,61619.6,0.05,Inside Left
+621,42.3,87158.1,0.05,Inside Left
+622,45.0,49601.1,0.05,Inside Left
+623,48.9,61309.6,0.05,Inside Left
+624,41.0,71652.2,0.05,Inside Left
+625,39.8,433506.2,0.05,Inside Left
+626,37.3,251499.6,0.05,Inside Left
+627,43.5,187687.0,0.05,Inside Left
+628,39.1,117893.7,0.05,Inside Left
+629,32.5,55729.4,0.05,Inside Left
+630,31.7,801224.9,0.05,Inside Left
+631,44.5,70746.1,0.05,Inside Left
+632,40.8,93717.6,0.05,Inside Left
+633,42.8,234150.8,0.05,Inside Left
+634,33.9,2440957.8,0.05,Inside Left
+635,42.1,207516.3,0.05,Inside Left
+636,37.5,76024.0,0.05,Inside Left
+637,43.0,65441.5,0.05,Inside Left
+638,43.8,53530.5,0.05,Inside Left
+639,45.7,42311.8,0.05,Inside Left
+640,45.5,36153.4,0.05,Inside Left
+641,38.4,34883.4,0.05,Inside Left
+642,45.0,26391.1,0.05,Inside Left
+643,43.2,28284.5,0.04,Inside Left
+644,44.7,31206.8,0.04,Inside Left
+645,43.7,38995.2,0.04,Inside Left
+646,42.8,49977.5,0.04,Inside Left
+647,47.1,52891.1,0.04,Inside Left
+648,44.3,174422.6,0.04,Inside Left
+649,38.0,75446.4,0.03,Inside Left
+650,47.6,17317.5,0.03,Inside Left
+651,47.3,11256.3,0.03,Inside Left
+652,48.1,8764.7,0.02,Inside Left
+653,40.5,7969.9,0.02,Inside Left
+654,40.6,7855.8,0.02,Inside Left
+655,43.0,7459.8,0.02,Inside Left
+656,47.0,8374.2,0.02,Inside Left
+657,46.1,11756.7,0.02,Inside Left
+658,36.4,12701.8,0.02,Inside Left
+659,41.6,14709.2,0.03,Inside Left
+660,40.5,35822.2,0.03,Inside Left
+661,44.0,17700.9,0.03,Inside Left
+662,43.3,18857.5,0.03,Inside Left
+663,36.2,17566.1,0.03,Inside Left
+664,31.2,20750.3,0.03,Inside Left
+665,30.9,26442.5,0.03,Inside Left
+666,36.7,34204.4,0.03,Inside Left
+667,32.5,42202.7,0.03,Inside Left
+668,33.6,68269.6,0.03,Inside Left
+669,45.5,137275.0,0.03,Inside Left
+670,44.8,86304.0,0.03,Inside Left
+671,44.4,1145142.8,0.02,Inside Left
+672,36.7,413428.5,0.02,Inside Left
+673,40.3,108857.7,0.02,Inside Left
+674,44.1,48421.1,0.02,Inside Left
+675,48.2,66884.5,0.02,Inside Left
+676,46.1,395222.0,0.02,Inside Left
+677,47.5,156219.1,0.02,Inside Left
+678,51.8,86838.1,0.02,Inside Left
+679,48.1,50193.2,0.02,Inside Left
+680,51.1,31575.2,0.02,Inside Left
+681,57.7,26270.6,0.02,Inside Left
+682,56.0,25422.5,0.01,Inside Left
+683,50.7,26927.0,0.01,Inside Left
+684,35.5,42303.5,0.01,Inside Left
+685,52.8,269132.9,0.01,Inside Left
+686,54.5,48515.5,0.01,Inside Left
+687,51.0,35400.1,0.01,Inside Left
+688,55.2,28412.4,0.01,Inside Left
+689,58.0,26578.0,0.01,Inside Left
+690,47.0,27632.1,0.0,Inside Left
+691,47.5,36159.9,0.0,Inside Left
+692,58.1,226408.7,0.0,Inside Left
+693,52.1,66053.0,0.0,Inside Right
+694,56.7,40965.8,0.0,Inside Right
+695,56.5,32307.8,0.0,Inside Right
+696,55.3,27993.7,0.0,Inside Right
+697,47.7,27562.7,0.0,Inside Right
+698,53.9,26463.6,0.0,Inside Right
+699,65.2,26443.3,0.0,Inside Right
+700,52.4,24114.9,0.0,Inside Right
+701,60.7,24406.8,0.0,Inside Right
+702,58.0,25008.9,0.0,Inside Right
+703,49.0,26495.7,0.0,Inside Right
+704,55.8,29008.0,0.0,Inside Right
+705,51.8,39376.8,0.0,Inside Right
+706,60.0,66306.8,0.0,Inside Right
+707,57.1,140593.6,0.0,Inside Left
+708,55.7,112518.3,0.0,Inside Left
+709,53.2,43390.7,0.0,Inside Left
+710,54.2,32551.3,0.0,Inside Right
+711,48.7,24077.0,0.0,Inside Right
+712,47.6,21959.0,0.0,Inside Right
+713,53.0,21496.8,0.0,Inside Right
+714,60.0,21583.4,0.0,Inside Right
+715,59.0,20461.9,0.0,Inside Right
+716,53.9,19200.6,0.0,Inside Right
+717,58.8,26370.3,0.0,Inside Right
+718,50.1,79531.5,0.0,Inside Right
+719,57.8,46175.8,0.0,Inside Right
+720,52.8,31659.8,0.0,Inside Right
+721,56.0,71383.0,0.01,Inside Right
+722,64.5,29995.4,0.0,Inside Right
+723,65.7,28029.1,0.0,Inside Right
+724,54.2,49194.2,0.01,Inside Right
+725,57.3,42874.1,0.01,Inside Right
+726,58.9,31385.0,0.01,Inside Right
+727,60.4,31864.4,0.01,Inside Right
+728,61.8,34682.5,0.01,Inside Right
+729,53.5,65272.4,0.01,Inside Right
+730,59.5,403442.6,0.01,Inside Right
+731,62.1,518626.0,0.01,Inside Right
+732,61.6,305735.3,0.01,Inside Right
+733,60.8,321216.9,0.01,Inside Right
+734,57.0,108656.6,0.01,Inside Right
+735,58.4,90576.2,0.01,Inside Right
+736,60.4,72747.0,0.01,Inside Right
+737,63.7,77013.9,0.01,Inside Right
+738,66.7,95154.0,0.01,Inside Right
+739,66.6,152871.7,0.02,Inside Right
+740,51.0,85101.4,0.02,Inside Right
+741,65.0,102968.7,0.02,Inside Right
+742,64.9,109029.5,0.02,Inside Right
+743,60.9,22622.0,0.02,Inside Right
+744,60.5,16176.7,0.02,Inside Right
+745,54.8,14208.1,0.02,Inside Right
+746,53.9,13191.8,0.02,Inside Right
+747,58.0,12421.9,0.02,Inside Right
+748,54.7,10473.0,0.02,Inside Right
+749,55.4,11727.8,0.03,Inside Right
+750,57.7,11784.3,0.02,Inside Right
+751,55.5,12979.5,0.02,Inside Right
+752,53.8,14162.5,0.03,Inside Right
+753,55.6,14768.7,0.03,Inside Right
+754,44.6,17654.6,0.03,Inside Right
+755,60.0,21285.8,0.02,Inside Right
+756,52.6,32481.9,0.02,Inside Right
+757,57.9,54723.5,0.02,Inside Right
+758,60.2,122671.6,0.02,Inside Right
+759,61.4,283350.2,0.02,Inside Right
+760,52.5,34681.4,0.02,Inside Right
+761,53.9,28307.3,0.02,Inside Right
+762,61.4,18623.3,0.02,Inside Right
+763,57.9,20508.5,0.02,Inside Right
+764,58.6,26096.9,0.02,Inside Right
+765,53.3,125949.7,0.02,Inside Right
+766,52.3,26842.1,0.02,Inside Right
+767,59.0,23375.6,0.02,Inside Right
+768,57.7,22539.1,0.02,Inside Right
+769,58.3,28363.5,0.02,Inside Right
+770,58.3,22295.1,0.02,Inside Right
+771,59.1,19108.3,0.02,Inside Right
+772,59.7,16548.6,0.02,Inside Right
+773,58.7,16307.2,0.02,Inside Right
+774,58.7,16492.8,0.02,Inside Right
+775,59.5,15374.1,0.01,Inside Right
+776,61.2,15839.6,0.01,Inside Right
+777,55.7,19004.9,0.01,Inside Right
+778,55.7,35206.5,0.01,Inside Right
+779,60.2,49577.1,0.01,Inside Right
+780,59.7,28972.0,0.01,Inside Right
+781,57.4,57133.2,0.01,Inside Right
+782,47.5,159021.7,0.01,Inside Right
+783,51.0,53331.4,0.01,Inside Right
+784,51.5,31581.4,0.01,Inside Right
+785,59.8,31283.3,0.01,Inside Right
+786,58.6,17264.0,0.01,Inside Right
+787,52.1,16134.4,0.01,Inside Right
+788,50.4,17538.9,0.01,Inside Right
+789,49.7,20402.6,0.01,Inside Right
+790,54.0,27761.5,0.01,Inside Right
+791,53.0,40093.1,0.01,Inside Right
+792,56.1,135491.8,0.0,Inside Right
+793,55.4,180222.1,0.0,Inside Right
+794,59.6,49178.7,0.0,Inside Right
+795,59.8,29036.1,0.0,Inside Right
+796,51.4,23190.2,0.0,Inside Right
+797,41.2,18352.5,0.0,Inside Right
+798,41.3,15892.0,0.01,Inside Right
+799,45.8,14136.8,0.01,Inside Right
+800,54.6,14438.7,0.01,Inside Right
+801,57.2,17020.7,0.01,Inside Right
+802,49.6,19391.0,0.01,Inside Right
+803,64.1,21921.2,0.01,Inside Right
+804,64.3,44467.4,0.01,Inside Right
+805,61.6,32571.4,0.01,Inside Right
+806,53.9,30389.8,0.01,Inside Right
+807,52.8,34061.8,0.01,Inside Right
+808,50.8,57900.1,0.0,Inside Right
+809,44.1,49647.6,0.0,Inside Right
+810,48.9,52275.5,0.0,Inside Right
+811,48.6,55148.6,0.0,Inside Left
+812,45.5,63025.8,0.0,Inside Left
+813,53.9,56183.0,0.0,Inside Left
+814,21.6,47562.0,0.0,Inside Left
+815,20.6,53659.6,0.01,Inside Left
+816,40.2,66412.7,0.01,Inside Left
+817,30.3,62528.1,0.01,Inside Left
+818,38.5,57901.9,0.01,Inside Left
+819,42.0,56582.5,0.01,Inside Left
+820,39.4,61700.9,0.01,Inside Left
+821,39.3,83873.3,0.01,Inside Left
+822,32.2,103130.8,0.01,Inside Left
+823,38.9,184687.3,0.01,Inside Left
+824,37.6,200779.8,0.01,Inside Left
+825,40.9,72903.3,0.02,Inside Left
+826,42.2,36830.0,0.02,Inside Left
+827,31.6,27255.4,0.01,Inside Left
+828,30.5,23287.1,0.02,Inside Left
+829,36.2,21021.6,0.02,Inside Left
+830,37.1,20294.6,0.02,Inside Left
+831,37.2,20941.1,0.02,Inside Left
+832,36.6,22257.9,0.02,Inside Left
+833,42.7,27258.6,0.02,Inside Left
+834,41.7,32115.4,0.02,Inside Left
+835,37.9,41352.2,0.02,Inside Left
+836,32.5,65050.9,0.03,Inside Left
+837,38.7,262211.4,0.03,Inside Left
+838,37.2,111476.1,0.03,Inside Left
+839,39.9,48500.2,0.03,Inside Left
+840,40.1,39010.7,0.03,Inside Left
+841,31.8,36795.7,0.03,Inside Left
+842,44.1,42036.0,0.03,Inside Left
+843,46.2,34168.2,0.03,Inside Left
+844,49.3,33207.4,0.03,Inside Left
+845,47.0,32379.1,0.03,Inside Left
+846,50.5,27238.9,0.03,Inside Left
+847,44.3,25657.8,0.03,Inside Left
+848,42.3,25693.7,0.03,Inside Left
+849,39.3,29550.8,0.03,Inside Left
+850,37.7,44418.8,0.03,Inside Left
+851,49.6,63581.5,0.03,Inside Left
+852,42.5,124935.4,0.03,Inside Left
+853,50.8,78945.5,0.03,Inside Left
+854,50.3,58914.6,0.03,Inside Left
+855,48.8,62823.4,0.03,Inside Left
+856,49.5,81905.6,0.03,Inside Left
+857,43.3,112956.9,0.03,Inside Left
+858,41.5,290225.4,0.03,Inside Left
+859,44.6,176541.8,0.03,Inside Left
+860,42.2,181678.1,0.03,Inside Left
+861,46.5,144876.7,0.03,Inside Left
+862,47.0,159265.2,0.03,Inside Left
+863,52.3,150247.7,0.03,Inside Left
+864,51.1,257899.7,0.03,Inside Left
+865,50.8,129524.6,0.03,Inside Left
+866,48.4,778011.8,0.03,Inside Left
+867,45.8,58717.5,0.04,Inside Left
+868,45.1,40962.9,0.04,Inside Left
+869,48.2,33655.2,0.04,Inside Left
+870,48.7,29686.7,0.04,Inside Left
+871,44.5,32098.1,0.04,Inside Left
+872,45.5,30666.9,0.04,Inside Left
+873,43.9,36945.8,0.04,Inside Left
+874,48.8,46711.7,0.04,Inside Left
+875,49.7,56635.4,0.04,Inside Left
+876,53.1,74702.8,0.04,Inside Left
+877,46.2,115995.1,0.04,Inside Left
+878,37.7,110409.6,0.04,Inside Left
+879,47.9,113004.2,0.04,Inside Left
+880,46.5,111876.4,0.04,Inside Left
+881,29.9,235727.6,0.04,Inside Left
+882,45.5,773098.4,0.04,Inside Left
+883,45.7,179723.3,0.04,Inside Left
+884,49.5,223430.0,0.04,Inside Left
+885,47.7,381246.9,0.05,Inside Left
+886,47.7,237340.8,0.05,Inside Left
+887,51.6,1614701.6,0.05,Inside Left
+888,53.8,603990.6,0.05,Inside Left
+889,50.8,595898.0,0.05,Inside Left
+890,47.4,210241.9,0.05,Inside Left
+891,43.3,312830.9,0.05,Inside Left
+892,47.5,160102.0,0.05,Inside Left
+893,51.7,209156.8,0.05,Inside Left
+894,52.1,162019.2,0.05,Inside Left
+895,49.6,172768.3,0.06,Inside Left
+896,54.1,155941.1,0.06,Inside Left
+897,53.7,81348.3,0.06,Inside Left
+898,51.9,120097.5,0.06,Inside Left
+899,52.9,307326.1,0.06,Inside Left
+900,51.7,323721.8,0.06,Inside Left
+901,49.0,118133.1,0.06,Inside Left
+902,49.6,60432.4,0.06,Inside Left
+903,48.5,44652.1,0.06,Inside Left
+904,46.9,38166.8,0.06,Inside Left
+905,40.3,37664.2,0.07,Inside Left
+906,47.1,37584.5,0.07,Inside Left
+907,36.4,38754.4,0.07,Inside Left
+908,40.6,42867.4,0.07,Inside Left
+909,38.6,53077.2,0.07,Inside Left
+910,40.3,80333.7,0.07,Inside Left
+911,46.9,186815.7,0.07,Inside Left
+912,51.0,106544.2,0.07,Inside Left
+913,53.0,67329.1,0.07,Inside Left
+914,44.1,66806.1,0.07,Inside Left
+915,47.6,58337.4,0.07,Inside Left
+916,41.4,61371.6,0.07,Inside Left
+917,36.7,74645.8,0.07,Inside Left
+918,37.9,77038.4,0.07,Inside Left
+919,41.8,228415.7,0.07,Inside Left
+920,39.3,259908.1,0.07,Inside Left
+921,31.1,143220.5,0.07,Inside Left
+922,38.5,90144.8,0.08,Inside Left
+923,40.1,100692.6,0.07,Inside Left
+924,38.7,167126.5,0.08,Inside Left
+925,31.5,90795.1,0.08,Inside Left
+926,39.9,53367.6,0.08,Inside Left
+927,41.7,38698.2,0.08,Inside Left
+928,42.9,28871.5,0.08,Inside Left
+929,37.6,26407.3,0.08,Inside Left
+930,35.8,32225.1,0.08,Inside Left
+931,39.2,42740.9,0.08,Inside Left
+932,42.8,65274.6,0.08,Inside Left
+933,40.7,126921.2,0.08,Inside Left
+934,40.1,4011166.6,0.08,Inside Left
+935,35.9,141648.0,0.08,Inside Left
+936,32.5,147260.4,0.08,Inside Left
+937,22.6,212114.5,0.08,Inside Left
+938,29.3,447429.9,0.08,Inside Left
+939,25.8,142693.0,0.08,Inside Left
+940,22.5,82655.4,0.08,Inside Left
+941,24.8,52591.2,0.08,Inside Left
+942,24.7,37258.3,0.08,Inside Left
+943,27.8,33613.8,0.08,Inside Left
+944,31.2,30026.1,0.08,Inside Left
+945,28.0,31429.7,0.08,Inside Left
+946,28.5,47024.1,0.08,Inside Left
+947,30.0,143692.8,0.08,Inside Left
+948,30.1,224267.8,0.08,Inside Left
+949,31.9,65020.1,0.08,Inside Left
+950,35.9,39860.1,0.08,Inside Left
+951,37.0,27392.7,0.08,Inside Left
+952,35.6,20581.8,0.08,Inside Left
+953,31.4,18486.6,0.08,Inside Left
+954,32.6,13920.0,0.08,Inside Left
+955,36.5,11412.1,0.08,Inside Left
+956,28.9,10558.6,0.08,Inside Left
+957,30.6,10449.8,0.08,Inside Left
+958,33.0,11122.7,0.08,Inside Left
+959,41.1,12475.7,0.08,Inside Left
+960,36.4,16274.6,0.08,Inside Left
+961,27.6,63618.6,0.08,Inside Left
+962,25.1,25701.2,0.07,Inside Left
+963,36.6,12643.7,0.07,Inside Left
+964,45.4,8914.1,0.07,Inside Left
+965,35.4,7409.3,0.07,Inside Left
+966,47.7,6743.6,0.07,Inside Left
+967,47.2,6413.6,0.06,Inside Left
+968,45.6,6341.0,0.06,Inside Left
+969,43.9,6351.6,0.06,Inside Left
+970,42.9,6780.5,0.06,Inside Left
+971,43.4,7438.9,0.06,Inside Left
+972,46.4,8365.7,0.06,Inside Left
+973,45.7,9707.4,0.06,Inside Left
+974,44.7,12439.3,0.06,Inside Left
+975,46.8,16989.5,0.06,Inside Left
+976,36.2,28305.3,0.06,Inside Left
+977,36.1,29399.3,0.06,Inside Left
+978,48.5,26288.9,0.06,Inside Left
+979,36.9,20769.5,0.07,Inside Left
+980,39.6,17697.7,0.07,Inside Left
+981,42.9,13420.6,0.07,Inside Left
+982,41.6,11077.5,0.07,Inside Left
+983,34.6,9906.5,0.07,Inside Left
+984,40.6,9836.7,0.07,Inside Left
+985,49.0,9828.7,0.07,Inside Left
+986,40.2,9794.8,0.07,Inside Left
+987,35.2,9672.5,0.07,Inside Left
+988,35.1,10410.4,0.07,Inside Left
+989,28.9,10988.2,0.07,Inside Left
+990,33.0,11522.9,0.06,Inside Left
+991,32.0,12283.5,0.06,Inside Left
+992,40.7,13871.8,0.06,Inside Left
+993,33.8,15896.1,0.06,Inside Left
+994,41.8,16329.0,0.06,Inside Left
+995,36.3,17967.6,0.06,Inside Left
+996,32.3,21766.6,0.05,Inside Left
+997,38.4,27434.8,0.05,Inside Left
+998,37.4,41967.2,0.05,Inside Left
+999,39.0,62226.1,0.05,Inside Left
+1000,36.7,2410321.6,0.05,Inside Left
+1001,45.2,124089.4,0.04,Inside Left
+1002,49.7,90212.0,0.04,Inside Left
+1003,51.1,77052.8,0.04,Inside Left
+1004,55.2,78687.7,0.04,Inside Left
+1005,37.3,62046.4,0.04,Inside Left
+1006,44.2,58474.6,0.04,Inside Left
+1007,49.8,64851.8,0.03,Inside Left
+1008,54.7,158711.1,0.03,Inside Left
+1009,51.1,515785.7,0.03,Inside Left
+1010,41.5,214150.1,0.03,Inside Left
+1011,42.5,303414.9,0.03,Inside Left
+1012,39.7,130621.7,0.03,Inside Left
+1013,43.5,80216.5,0.03,Inside Left
+1014,50.6,56944.6,0.03,Inside Left
+1015,41.2,48203.4,0.03,Inside Left
+1016,43.2,41853.3,0.03,Inside Left
+1017,40.9,29660.7,0.03,Inside Left
+1018,47.0,26669.0,0.03,Inside Left
+1019,44.4,26548.3,0.03,Inside Left
+1020,47.0,27180.0,0.03,Inside Left
+1021,47.7,27163.6,0.03,Inside Left
+1022,37.4,26444.4,0.03,Inside Left
+1023,46.7,25077.8,0.03,Inside Left
+1024,50.8,26251.9,0.03,Inside Left
+1025,42.3,28462.2,0.03,Inside Left
+1026,44.6,28311.6,0.03,Inside Left
+1027,45.2,28002.0,0.03,Inside Left
+1028,40.8,30141.5,0.02,Inside Left
+1029,43.6,33678.1,0.02,Inside Left
+1030,42.8,37623.2,0.02,Inside Left
+1031,45.9,45712.3,0.02,Inside Left
+1032,41.7,44156.2,0.02,Inside Left
+1033,38.4,42864.9,0.02,Inside Left
+1034,44.2,33857.5,0.02,Inside Left
+1035,38.2,28627.2,0.02,Inside Left
+1036,47.0,26192.2,0.03,Inside Left
+1037,36.6,26773.5,0.03,Inside Left
+1038,37.7,26275.0,0.03,Inside Left
+1039,48.4,24247.7,0.03,Inside Left
+1040,46.7,22037.7,0.03,Inside Left
+1041,58.4,21653.0,0.03,Inside Left
+1042,61.5,20349.8,0.03,Inside Left
+1043,55.1,18805.0,0.03,Inside Left
+1044,50.9,18265.4,0.03,Inside Left
+1045,61.9,18679.4,0.03,Inside Left
+1046,59.9,22465.6,0.03,Inside Left
+1047,55.3,28706.1,0.03,Inside Left
+1048,54.5,43694.4,0.03,Inside Left
+1049,43.3,115718.9,0.03,Inside Left
+1050,56.7,399044.5,0.03,Inside Left
+1051,46.8,53821.2,0.03,Inside Left
+1052,55.8,24917.8,0.03,Inside Left
+1053,48.3,17403.1,0.03,Inside Left
+1054,53.4,13614.7,0.03,Inside Left
+1055,38.5,13046.4,0.03,Inside Left
+1056,41.3,10508.8,0.03,Inside Left
+1057,50.0,10225.8,0.03,Inside Left
+1058,62.9,10153.8,0.03,Inside Left
+1059,50.1,10988.7,0.03,Inside Left
+1060,54.7,11845.5,0.04,Inside Left
+1061,57.3,16172.0,0.04,Inside Left
+1062,52.0,23552.5,0.04,Inside Left
+1063,34.7,42987.4,0.04,Inside Left
+1064,51.6,68514.7,0.04,Inside Left
+1065,53.7,21854.4,0.04,Inside Left
+1066,58.1,12977.7,0.04,Inside Left
+1067,59.8,11006.4,0.05,Inside Left
+1068,52.8,11554.0,0.05,Inside Left
+1069,45.0,14407.6,0.05,Inside Left
+1070,42.9,18268.7,0.05,Inside Left
+1071,46.9,36709.3,0.05,Inside Left
+1072,54.6,351601.4,0.06,Inside Left
+1073,48.7,47999.0,0.06,Inside Left
+1074,46.4,34220.6,0.06,Inside Left
+1075,56.7,33514.8,0.07,Inside Left
+1076,48.0,58963.6,0.07,Inside Left
+1077,49.7,35955.4,0.07,Inside Left
+1078,50.4,46286.7,0.07,Inside Left
+1079,41.7,69706.8,0.07,Inside Left
+1080,47.0,313539.5,0.07,Inside Left
+1081,46.4,63164.0,0.07,Inside Left
+1082,52.2,28962.1,0.07,Inside Left
+1083,48.8,28778.2,0.07,Inside Left
+1084,53.9,30066.0,0.07,Inside Left
+1085,51.9,26602.2,0.07,Inside Left
+1086,58.7,26937.5,0.07,Inside Left
+1087,57.8,27119.4,0.06,Inside Left
+1088,53.8,28878.1,0.07,Inside Left
+1089,57.0,33982.5,0.07,Inside Left
+1090,66.5,35716.6,0.07,Inside Left
+1091,66.3,36604.6,0.07,Inside Left
+1092,59.2,36072.5,0.07,Inside Left
+1093,53.7,39031.7,0.07,Inside Left
+1094,62.5,49161.1,0.07,Inside Left
+1095,45.8,52093.6,0.07,Inside Left
+1096,45.7,42011.5,0.07,Inside Left
+1097,51.7,43078.8,0.07,Inside Left
+1098,40.2,50374.6,0.07,Inside Left
+1099,45.4,62913.7,0.07,Inside Left
+1100,44.0,80412.2,0.07,Inside Left
+1101,42.3,45334.4,0.07,Inside Left
+1102,57.0,34144.5,0.07,Inside Left
+1103,63.4,33397.3,0.07,Inside Left
+1104,66.3,30338.2,0.07,Inside Left
+1105,59.9,22885.4,0.07,Inside Left
+1106,66.6,24983.4,0.07,Inside Left
+1107,67.5,19761.4,0.07,Inside Left
+1108,59.5,20675.9,0.07,Inside Left
+1109,59.9,20751.6,0.07,Inside Left
+1110,60.3,21969.1,0.07,Inside Left
+1111,52.1,23108.1,0.07,Inside Left
+1112,60.9,25820.4,0.06,Inside Left
+1113,54.4,25440.8,0.06,Inside Left
+1114,55.6,28519.9,0.06,Inside Left
+1115,54.8,26838.4,0.06,Inside Left
+1116,51.6,33338.3,0.06,Inside Left
+1117,43.6,46038.2,0.06,Inside Left
+1118,49.6,88352.1,0.06,Inside Left
+1119,56.5,1993949.8,0.06,Inside Left
+1120,54.5,105306.9,0.06,Inside Left
+1121,48.5,187174.1,0.06,Inside Left
+1122,47.8,336591.5,0.06,Inside Left
+1123,61.0,111594.5,0.06,Inside Left
+1124,56.6,61729.6,0.05,Inside Left
+1125,41.2,43017.0,0.05,Inside Left
+1126,53.2,36879.8,0.05,Inside Left
+1127,50.7,35796.0,0.05,Inside Left
+1128,37.6,36394.1,0.05,Inside Left
+1129,56.8,36337.0,0.05,Inside Left
+1130,58.9,45216.3,0.05,Inside Left
+1131,61.6,61701.5,0.04,Inside Left
+1132,61.6,102484.7,0.04,Inside Left
+1133,56.1,120734.9,0.03,Inside Left
+1134,56.9,342456.1,0.03,Inside Left
+1135,46.4,843483.4,0.03,Inside Left
+1136,56.8,206706.7,0.03,Inside Left
+1137,61.0,157892.2,0.02,Inside Left
+1138,52.0,67164.0,0.03,Inside Left
+1139,62.6,39630.8,0.03,Inside Left
+1140,49.5,29867.8,0.03,Inside Left
+1141,49.8,30727.5,0.03,Inside Left
+1142,47.5,39340.2,0.03,Inside Left
+1143,53.7,71334.8,0.04,Inside Left
+1144,52.7,30544.2,0.04,Inside Left
+1145,54.6,55426.9,0.03,Inside Left
+1146,57.6,79751.7,0.03,Inside Left
+1147,51.2,373237.5,0.03,Inside Left
+1148,42.1,355458.5,0.03,Inside Left
+1149,48.9,366248.0,0.03,Inside Left
+1150,35.5,109584.1,0.03,Inside Left
+1151,32.0,66587.5,0.03,Inside Left
+1152,20.8,36815.0,0.03,Inside Left
+1153,32.8,28192.2,0.03,Inside Left
+1154,45.7,28454.5,0.03,Inside Left
+1155,47.9,27735.1,0.03,Inside Left
+1156,34.8,32940.7,0.03,Inside Left
+1157,40.5,50672.0,0.03,Inside Left
+1158,42.7,450766.6,0.03,Inside Left
+1159,36.0,103672.7,0.03,Inside Left
+1160,49.7,50848.9,0.02,Inside Left
+1161,37.7,32704.7,0.02,Inside Left
+1162,46.4,25880.5,0.02,Inside Left
+1163,48.4,21464.5,0.02,Inside Left
+1164,47.9,21040.6,0.02,Inside Left
+1165,54.6,19919.6,0.02,Inside Left
+1166,57.5,19541.2,0.02,Inside Left
+1167,55.3,18538.6,0.02,Inside Left
+1168,52.1,18785.8,0.01,Inside Left
+1169,51.0,26638.8,0.02,Inside Left
+1170,56.8,22432.3,0.02,Inside Left
+1171,47.3,22001.5,0.01,Inside Left
+1172,63.4,23993.2,0.01,Inside Left
+1173,56.1,23239.1,0.01,Inside Left
+1174,58.0,23402.2,0.01,Inside Left
+1175,38.5,24529.7,0.01,Inside Left
+1176,46.9,22465.7,0.01,Inside Left
+1177,51.1,18107.0,0.01,Inside Left
+1178,59.1,18376.5,0.01,Inside Left
+1179,58.3,18073.2,0.01,Inside Left
+1180,35.5,19663.1,0.01,Inside Left
+1181,44.9,19683.3,0.01,Inside Left
+1182,46.6,18724.4,0.01,Inside Left
+1183,57.9,19417.4,0.01,Inside Left
+1184,50.7,25586.9,0.01,Inside Left
+1185,60.2,22260.6,0.01,Inside Left
+1186,56.7,24014.3,0.01,Inside Left
+1187,55.3,23600.4,0.01,Inside Left
+1188,57.5,26401.7,0.01,Inside Left
+1189,60.1,28895.1,0.01,Inside Right
+1190,66.9,31159.1,0.01,Inside Right
+1191,63.7,31658.4,0.0,Inside Right
+1192,60.1,33001.8,0.0,Inside Right
+1193,60.4,31238.9,0.0,Inside Right
+1194,43.1,29778.0,0.01,Inside Right
+1195,61.1,28265.4,0.01,Inside Right
+1196,63.9,26179.5,0.01,Inside Right
+1197,63.6,34185.3,0.01,Inside Left
+1198,59.2,24307.5,0.0,Inside Left
+1199,59.5,19128.2,0.0,Inside Right
+1200,64.3,16253.3,0.0,Inside Right
+1201,52.0,32647.9,0.0,Inside Left
+1202,58.8,18219.6,0.0,Inside Left
+1203,56.5,13999.0,0.0,Inside Right
+1204,59.5,12796.7,0.0,Inside Right
+1205,56.8,12923.9,0.0,Inside Right
+1206,58.9,13026.7,0.0,Inside Right
+1207,66.7,14082.4,0.0,Inside Right
+1208,64.4,16257.0,0.0,Inside Right
+1209,51.2,18377.2,0.0,Inside Right
+1210,56.1,22831.5,0.0,Inside Right
+1211,57.0,27075.0,0.0,Inside Right
+1212,54.4,9332804.2,0.0,Inside Right
+1213,59.3,73882.0,0.0,Inside Right
+1214,62.0,23782.8,0.01,Inside Right
+1215,50.4,17413.9,0.01,Inside Right
+1216,43.0,15718.0,0.02,Inside Right
+1217,59.6,15611.9,0.02,Inside Right
+1218,55.1,16251.5,0.02,Inside Right
+1219,57.9,16622.2,0.03,Inside Right
+1220,53.8,17553.3,0.03,Inside Right
+1221,58.7,19567.1,0.02,Inside Right
+1222,47.7,24507.0,0.02,Inside Right
+1223,46.1,28749.6,0.02,Inside Right
+1224,52.6,31380.8,0.02,Inside Right
+1225,50.9,32422.7,0.02,Inside Right
+1226,49.0,37025.0,0.02,Inside Right
+1227,51.5,26562.0,0.02,Inside Right
+1228,55.5,32527.5,0.02,Inside Right
+1229,47.6,33637.1,0.02,Inside Right
+1230,51.8,38293.8,0.02,Inside Right
+1231,41.2,44120.7,0.01,Inside Right
+1232,45.1,58727.8,0.01,Inside Right
+1233,52.1,61457.5,0.01,Inside Right
+1234,50.3,370875.5,0.01,Inside Right
+1235,44.4,245577.8,0.01,Inside Right
+1236,57.1,114878.6,0.01,Inside Right
+1237,56.4,57350.6,0.01,Inside Right
+1238,56.1,38318.1,0.01,Inside Right
+1239,59.1,28361.2,0.01,Inside Right
+1240,56.2,25422.4,0.01,Inside Right
+1241,60.2,24527.9,0.01,Inside Right
+1242,37.5,23890.4,0.01,Inside Right
+1243,62.4,24881.1,0.0,Inside Right
+1244,58.5,24969.9,0.0,Inside Left
+1245,63.4,26196.1,0.0,Inside Left
+1246,63.3,33745.4,0.0,Inside Left
+1247,66.5,32118.5,0.0,Inside Left
+1248,60.0,30112.0,0.01,Inside Left
+1249,63.0,28421.9,0.01,Inside Left
+1250,65.1,16607.2,0.01,Inside Left
+1251,62.8,14525.0,0.01,Inside Left
+1252,64.1,16328.5,0.01,Inside Left
+1253,63.0,16947.0,0.01,Inside Left
+1254,65.0,17168.4,0.0,Inside Left
+1255,67.6,18724.7,0.0,Inside Left
+1256,73.8,21334.7,0.0,Inside Left
+1257,59.3,24488.8,0.0,Inside Left
+1258,64.0,28131.2,0.0,Inside Right
+1259,64.2,28120.2,0.0,Inside Right
+1260,64.8,32603.2,0.0,Inside Right
+1261,54.8,74085.0,0.0,Inside Right
+1262,61.1,120762.2,0.01,Inside Right
+1263,67.3,46328.9,0.01,Inside Right
+1264,70.5,31958.7,0.01,Inside Right
+1265,63.5,27044.1,0.01,Inside Right
+1266,63.2,23061.2,0.01,Inside Right
+1267,68.3,20569.4,0.01,Inside Right
+1268,75.4,18825.4,0.01,Inside Right
+1269,73.6,17431.8,0.01,Inside Right
+1270,65.2,16743.4,0.01,Inside Right
+1271,68.8,17065.0,0.01,Inside Right
+1272,60.0,19655.9,0.01,Inside Right
+1273,65.4,20084.3,0.01,Inside Right
+1274,68.2,18989.8,0.01,Inside Right
+1275,61.5,22332.0,0.01,Inside Right
+1276,50.0,118294.6,0.0,Inside Right
+1277,60.4,122895.3,0.0,Inside Right
+1278,66.2,34579.0,0.0,Inside Right
+1279,61.4,32171.2,0.0,Inside Right
+1280,64.7,31273.9,0.0,Inside Right
+1281,56.7,39450.3,0.0,Inside Right
+1282,55.1,59866.6,0.0,Inside Right
+1283,66.6,57704.8,0.01,Inside Right
+1284,75.4,60588.1,0.01,Inside Right
+1285,65.0,62593.5,0.01,Inside Right
+1286,59.7,55858.6,0.02,Inside Right
+1287,53.2,56236.3,0.02,Inside Right
+1288,52.9,76075.5,0.02,Inside Right
+1289,53.9,80309.1,0.02,Inside Right
+1290,60.3,91033.0,0.02,Inside Right
+1291,58.6,105115.2,0.03,Inside Right
+1292,59.9,94240.1,0.03,Inside Right
+1293,72.1,254548.1,0.03,Inside Right
+1294,47.7,356220.1,0.03,Inside Right
+1295,54.7,1078257.5,0.04,Inside Right
+1296,59.7,133182.3,0.04,Inside Right
+1297,60.5,73473.7,0.04,Inside Right
+1298,55.8,63655.2,0.04,Inside Right
+1299,71.0,83113.0,0.04,Inside Right
+1300,69.7,71057.4,0.04,Inside Right
+1301,71.6,54392.8,0.05,Inside Right
+1302,59.6,77819.6,0.04,Inside Right
+1303,67.6,61802.2,0.04,Inside Right
+1304,62.7,146057.2,0.04,Inside Right
+1305,65.3,950609.0,0.03,Inside Right
+1306,61.2,124176.2,0.03,Inside Right
+1307,69.8,71287.1,0.03,Inside Right
+1308,61.1,58908.0,0.04,Inside Right
+1309,65.9,38782.2,0.04,Inside Right
+1310,56.9,28133.9,0.05,Inside Right
+1311,55.7,27755.8,0.05,Inside Right
+1312,54.4,25928.3,0.06,Inside Right
+1313,61.2,25597.5,0.06,Inside Right
+1314,60.0,25217.9,0.06,Inside Right
+1315,53.1,24544.5,0.06,Inside Right
+1316,58.8,31724.1,0.06,Inside Right
+1317,60.4,47122.2,0.06,Inside Right
+1318,61.1,125202.5,0.07,Inside Right
+1319,53.6,125168.9,0.07,Inside Right
+1320,57.6,53759.5,0.07,Inside Right
+1321,49.8,31677.3,0.07,Inside Right
+1322,43.1,39576.4,0.07,Inside Right
+1323,52.3,50032.0,0.07,Inside Right
+1324,57.2,23376.1,0.07,Inside Right
+1325,62.1,17705.0,0.07,Inside Right
+1326,57.5,12789.6,0.07,Inside Right
+1327,57.0,11681.9,0.07,Inside Right
+1328,49.0,10648.9,0.07,Inside Right
+1329,51.7,8595.9,0.07,Inside Right
+1330,60.3,8223.8,0.07,Inside Right
+1331,51.5,6354.4,0.07,Inside Right
+1332,62.0,5402.7,0.08,Inside Right
+1333,43.3,5085.0,0.07,Inside Right
+1334,60.0,4948.8,0.07,Inside Right
+1335,51.1,4766.1,0.07,Inside Right
+1336,52.2,4638.3,0.07,Inside Right
+1337,59.4,4658.3,0.07,Inside Right
+1338,58.8,4892.9,0.07,Inside Right
+1339,43.0,5378.5,0.06,Inside Right
+1340,56.7,6172.8,0.06,Inside Right
+1341,58.1,6232.1,0.06,Inside Right
+1342,63.9,6726.7,0.06,Inside Right
+1343,42.0,7193.6,0.06,Inside Right
+1344,39.0,7250.0,0.06,Inside Right
+1345,47.6,7910.6,0.06,Inside Right
+1346,37.2,8697.6,0.06,Inside Right
+1347,59.5,9960.4,0.06,Inside Right
+1348,71.1,11999.2,0.06,Inside Right
+1349,73.8,14932.9,0.06,Inside Right
+1350,76.5,21013.6,0.06,Inside Right
+1351,63.0,39790.2,0.06,Inside Right
+1352,44.0,82238.9,0.06,Inside Right
+1353,74.1,10837885.5,0.06,Inside Right
+1354,68.4,106437.8,0.06,Inside Right
+1355,73.0,137252.5,0.05,Inside Right
+1356,71.3,104397.8,0.06,Inside Right
+1357,65.5,50633.4,0.06,Inside Right
+1358,73.0,40088.8,0.06,Inside Right
+1359,74.2,34966.8,0.06,Inside Right
+1360,71.8,28600.5,0.06,Inside Right
+1361,57.1,28705.1,0.06,Inside Right
+1362,56.4,23541.9,0.07,Inside Right
+1363,64.1,31800.1,0.07,Inside Right
+1364,68.1,67576.7,0.07,Inside Right
+1365,49.3,688619.1,0.07,Inside Right
+1366,61.8,40014.7,0.06,Inside Right
+1367,61.6,25230.5,0.06,Inside Right
+1368,53.6,25751.4,0.06,Inside Right
+1369,64.0,20986.2,0.06,Inside Right
+1370,68.0,32555.3,0.06,Inside Right
+1371,71.4,2934597.7,0.06,Inside Right
+1372,68.0,26241.6,0.06,Inside Right
+1373,68.3,20449.7,0.06,Inside Right
+1374,65.1,18279.4,0.06,Inside Right
+1375,63.3,19064.4,0.06,Inside Right
+1376,47.9,18251.0,0.06,Inside Right
+1377,64.8,17330.1,0.06,Inside Right
+1378,68.0,16225.2,0.06,Inside Right
+1379,62.4,16738.7,0.06,Inside Right
+1380,62.2,16616.3,0.06,Inside Right
+1381,67.9,20240.4,0.06,Inside Right
+1382,64.2,17579.1,0.05,Inside Right
+1383,66.7,66697.3,0.04,Inside Right
+1384,67.2,29650.0,0.04,Inside Right
+1385,61.0,45999.4,0.03,Inside Right
+1386,68.3,111519.6,0.03,Inside Right
+1387,57.3,108198.4,0.03,Inside Right
+1388,65.8,63805.5,0.04,Inside Right
+1389,65.3,44648.2,0.04,Inside Right
+1390,63.1,47019.8,0.05,Inside Right
+1391,50.2,48810.7,0.05,Inside Right
+1392,55.4,34205.7,0.06,Inside Right
+1393,58.7,37566.6,0.06,Inside Right
+1394,65.1,43737.9,0.06,Inside Right
+1395,57.4,56232.7,0.05,Inside Right
+1396,56.7,99486.9,0.05,Inside Right
+1397,62.1,212729.8,0.05,Inside Right
+1398,64.2,1448335.2,0.05,Inside Right
+1399,56.3,113164.4,0.05,Inside Right
+1400,61.2,84737.6,0.05,Inside Right
+1401,59.0,56642.9,0.05,Inside Right
+1402,67.2,51749.1,0.05,Inside Right
+1403,61.1,48296.2,0.05,Inside Right
+1404,63.5,44037.8,0.04,Inside Right
+1405,42.8,39638.1,0.04,Inside Right
+1406,54.5,31158.2,0.04,Inside Right
+1407,60.7,27688.4,0.04,Inside Right
+1408,63.0,18474.5,0.04,Inside Right
+1409,70.6,16383.5,0.04,Inside Right
+1410,65.0,14939.4,0.04,Inside Right
+1411,63.4,14649.6,0.04,Inside Right
+1412,63.6,13850.0,0.04,Inside Right
+1413,61.4,13309.4,0.04,Inside Right
+1414,51.1,18379.9,0.04,Inside Right
+1415,61.8,17988.2,0.04,Inside Right
+1416,60.6,15687.4,0.04,Inside Right
+1417,61.5,21703.7,0.04,Inside Right
+1418,62.0,17835.9,0.04,Inside Right
+1419,55.4,15881.8,0.05,Inside Right
+1420,61.9,14619.4,0.05,Inside Right
+1421,57.9,12649.8,0.05,Inside Right
+1422,59.8,11940.8,0.05,Inside Right
+1423,59.2,10305.3,0.04,Inside Right
+1424,62.5,9842.1,0.04,Inside Right
+1425,56.4,9159.5,0.04,Inside Right
+1426,61.7,8866.1,0.04,Inside Right
+1427,65.5,9193.6,0.04,Inside Right
+1428,57.5,9145.6,0.04,Inside Right
+1429,55.5,9041.1,0.04,Inside Right
+1430,64.8,9648.9,0.04,Inside Right
+1431,66.5,10069.9,0.04,Inside Right
+1432,65.9,10859.9,0.04,Inside Right
+1433,66.6,12295.4,0.04,Inside Right
+1434,65.1,12581.8,0.04,Inside Right
+1435,64.1,13375.7,0.04,Inside Right
+1436,58.4,14311.9,0.04,Inside Right
+1437,48.6,15185.0,0.03,Inside Right
+1438,64.2,14960.3,0.04,Inside Right
+1439,64.5,14155.7,0.04,Inside Right
+1440,61.1,14563.0,0.04,Inside Right
+1441,64.7,15017.8,0.04,Inside Right
+1442,62.5,17229.3,0.04,Inside Right
+1443,68.0,22133.4,0.04,Inside Right
+1444,61.6,29798.5,0.04,Inside Right
+1445,64.9,78345.4,0.04,Inside Right
+1446,57.3,38844.9,0.03,Inside Right
+1447,59.4,30002.4,0.03,Inside Right
+1448,67.9,32214.9,0.04,Inside Right
+1449,66.5,56960.6,0.04,Inside Right
+1450,66.5,74324.2,0.04,Inside Right
+1451,44.1,28887.4,0.04,Inside Right
+1452,45.5,19598.2,0.04,Inside Right
+1453,50.6,16317.8,0.04,Inside Right
+1454,33.9,14884.5,0.04,Inside Right
+1455,33.5,13702.9,0.04,Inside Right
+1456,39.6,12631.4,0.04,Inside Right
+1457,47.3,12197.5,0.04,Inside Right
+1458,60.7,11774.3,0.04,Inside Right
+1459,53.9,10515.0,0.04,Inside Right
+1460,53.9,9598.1,0.04,Inside Right
+1461,58.5,9098.6,0.04,Inside Right
+1462,64.5,8693.8,0.04,Inside Right
+1463,42.3,8783.9,0.03,Inside Right
+1464,49.8,8917.8,0.03,Inside Right
+1465,57.3,8576.5,0.03,Inside Right
+1466,52.7,8752.6,0.03,Inside Right
+1467,50.8,9017.0,0.03,Inside Right
+1468,61.1,9402.4,0.03,Inside Right
+1469,55.9,9855.1,0.03,Inside Right
+1470,55.9,10258.7,0.03,Inside Right
+1471,47.9,10012.1,0.03,Inside Right
+1472,48.1,9637.3,0.03,Inside Right
+1473,52.6,10024.3,0.03,Inside Right
+1474,55.9,10613.3,0.03,Inside Right
+1475,52.6,10200.1,0.03,Inside Right
+1476,48.9,10776.0,0.03,Inside Right
+1477,49.1,10946.5,0.03,Inside Right
+1478,50.4,12588.1,0.03,Inside Right
+1479,54.8,15417.2,0.03,Inside Right
+1480,50.2,18631.4,0.03,Inside Right
+1481,47.8,23174.9,0.03,Inside Right
+1482,54.1,40778.3,0.03,Inside Right
+1483,40.0,120015.4,0.02,Inside Right
+1484,42.3,578739.8,0.03,Inside Right
+1485,44.8,80676.6,0.03,Inside Right
+1486,51.6,34816.7,0.04,Inside Right
+1487,40.6,23570.3,0.04,Inside Right
+1488,53.9,19095.8,0.04,Inside Right
+1489,61.1,16570.3,0.04,Inside Right
+1490,56.6,15808.9,0.04,Inside Right
+1491,66.6,14611.2,0.05,Inside Right
+1492,55.4,17771.8,0.05,Inside Right
+1493,54.0,26046.6,0.04,Inside Right
+1494,58.1,44770.2,0.04,Inside Right
+1495,56.8,203427.4,0.04,Inside Right
+1496,63.4,28945.8,0.04,Inside Right
+1497,56.7,24890.0,0.04,Inside Right
+1498,58.0,89932.8,0.04,Inside Right
+1499,58.8,35467.8,0.04,Inside Right
+1500,58.6,27292.5,0.04,Inside Right
+1501,56.2,17696.9,0.04,Inside Right
+1502,51.9,12912.4,0.04,Inside Right
+1503,58.9,10547.9,0.04,Inside Right
+1504,54.6,9221.1,0.04,Inside Right
+1505,49.7,8532.1,0.04,Inside Right
+1506,56.2,8356.5,0.04,Inside Right
+1507,48.7,7918.4,0.04,Inside Right
+1508,54.9,8488.6,0.04,Inside Right
+1509,53.0,8969.0,0.04,Inside Right
+1510,56.8,9477.3,0.04,Inside Right
+1511,46.1,9380.5,0.05,Inside Right
+1512,57.1,9858.7,0.05,Inside Right
+1513,58.9,10439.7,0.05,Inside Right
+1514,53.3,10940.5,0.06,Inside Right
+1515,54.5,11494.7,0.06,Inside Right
+1516,52.0,13143.6,0.06,Inside Right
+1517,59.3,14712.4,0.06,Inside Right
+1518,59.0,19767.7,0.06,Inside Right
+1519,54.7,22107.0,0.06,Inside Right
+1520,57.5,27646.9,0.06,Inside Right
+1521,54.5,39198.6,0.05,Inside Right
+1522,55.2,77668.5,0.05,Inside Right
+1523,50.6,156683.8,0.05,Inside Right
+1524,55.4,678174.1,0.06,Inside Right
+1525,61.2,348792.7,0.06,Inside Right
+1526,65.2,13503620.7,0.06,Inside Right
+1527,57.0,240562.2,0.06,Inside Right
+1528,59.1,178248.7,0.06,Inside Right
+1529,56.3,303167.0,0.06,Inside Right
+1530,44.5,270454.9,0.07,Inside Right
+1531,48.0,180607.2,0.07,Inside Right
+1532,57.2,72534.3,0.07,Inside Right
+1533,63.2,1576555.4,0.07,Inside Right
+1534,66.1,79846.8,0.07,Inside Right
+1535,56.3,54610.6,0.07,Inside Right
+1536,65.0,36829.4,0.07,Inside Right
+1537,62.6,31029.2,0.07,Inside Right
+1538,62.7,26076.6,0.07,Inside Right
+1539,64.1,21726.8,0.08,Inside Right
+1540,65.1,21009.7,0.08,Inside Right
+1541,58.6,16607.2,0.08,Inside Right
+1542,52.5,19748.8,0.08,Inside Right
+1543,57.6,22597.8,0.08,Inside Right
+1544,56.6,30402.3,0.08,Inside Right
+1545,53.8,34198.7,0.08,Inside Right
+1546,41.7,34419.2,0.08,Inside Right
+1547,50.9,34676.9,0.08,Inside Right
+1548,62.7,149070.9,0.08,Inside Right
+1549,65.0,39130.5,0.08,Inside Right
+1550,63.1,36656.3,0.08,Inside Right
+1551,64.0,30762.4,0.08,Inside Right
+1552,58.2,33488.5,0.08,Inside Right
+1553,63.3,32307.8,0.08,Inside Right
+1554,72.2,38454.6,0.08,Inside Right
+1555,56.6,60133.1,0.08,Inside Right
+1556,60.6,118252.4,0.08,Inside Right
+1557,66.3,200243.1,0.08,Inside Right
+1558,62.0,246252.2,0.08,Inside Right
+1559,51.7,90467.1,0.07,Inside Right
+1560,58.1,131491.6,0.07,Inside Right
+1561,59.8,120600.9,0.07,Inside Right
+1562,56.7,194428.9,0.07,Inside Right
+1563,40.3,146886.0,0.07,Inside Right
+1564,53.7,49483.8,0.07,Inside Right
+1565,44.0,29819.7,0.07,Inside Right
+1566,41.3,20528.2,0.06,Inside Right
+1567,41.7,19606.2,0.05,Inside Right
+1568,38.5,21151.7,0.05,Inside Right
+1569,53.4,33648.6,0.04,Inside Right
+1570,58.4,29262.4,0.04,Inside Right
+1571,56.9,16543.3,0.04,Inside Right
+1572,58.4,16704.0,0.03,Inside Right
+1573,63.9,21307.8,0.04,Inside Right
+1574,65.4,26640.3,0.04,Inside Right
+1575,61.4,66371.0,0.04,Inside Right
+1576,51.1,50602.9,0.04,Inside Right
+1577,55.6,29068.4,0.04,Inside Right
+1578,60.6,22153.9,0.05,Inside Right
+1579,60.4,26880.4,0.04,Inside Right
+1580,58.3,34039.4,0.04,Inside Right
+1581,56.8,69829.9,0.04,Inside Right
+1582,51.2,36519.7,0.04,Inside Right
+1583,57.4,30078.0,0.04,Inside Right
+1584,59.0,24987.4,0.04,Inside Right
+1585,67.2,20769.8,0.04,Inside Right
+1586,56.5,18835.3,0.04,Inside Right
+1587,66.1,20432.0,0.04,Inside Right
+1588,68.5,25589.9,0.04,Inside Right
+1589,64.2,1776977.5,0.04,Inside Right
+1590,64.4,21013.4,0.04,Inside Right
+1591,65.4,14601.9,0.04,Inside Right
+1592,59.0,23367.4,0.02,Inside Right
+1593,62.8,17413.5,0.01,Inside Right
+1594,67.6,17388.4,0.01,Inside Right
+1595,63.5,19060.6,0.01,Inside Right
+1596,59.5,22909.5,0.0,Inside Left
+1597,66.0,26419.2,0.01,Inside Left
+1598,68.9,62786.9,0.01,Inside Left
+1599,64.0,44715.9,0.01,Inside Left
+1600,56.1,15279.2,0.01,Inside Right
+1601,62.5,16278.9,0.0,Inside Right
+1602,68.1,15218.4,0.01,Inside Right
+1603,64.8,14902.7,0.01,Inside Right
+1604,70.0,14235.2,0.01,Inside Right
+1605,71.0,14306.7,0.01,Inside Right
+1606,63.3,15625.4,0.01,Inside Right
+1607,65.9,19434.1,0.0,Inside Right
+1608,63.4,25624.1,0.0,Inside Left
+1609,65.7,40082.4,0.0,Inside Left
+1610,47.4,38113.6,0.01,Inside Left
+1611,60.2,42849.1,0.01,Inside Left
+1612,63.0,49996.7,0.01,Inside Left
+1613,69.3,55284.0,0.01,Inside Left
+1614,70.5,55940.6,0.01,Inside Left
+1615,59.8,74993.5,0.01,Inside Left
+1616,54.8,113752.6,0.01,Inside Left
+1617,57.4,62239.7,0.01,Inside Left
+1618,47.2,65883.1,0.01,Inside Left
+1619,59.4,65183.2,0.01,Inside Left
+1620,65.1,51991.8,0.01,Inside Left
+1621,62.8,58006.2,0.01,Inside Left
+1622,64.3,49596.0,0.02,Inside Left
+1623,59.3,45599.6,0.02,Inside Left
+1624,54.6,54883.4,0.02,Inside Left
+1625,52.5,49621.0,0.02,Inside Left
+1626,63.0,49637.1,0.02,Inside Left
+1627,51.2,69477.9,0.02,Inside Left
+1628,58.2,93909.0,0.02,Inside Left
+1629,65.5,146242.0,0.02,Inside Left
+1630,60.1,625403.4,0.02,Inside Left
+1631,61.1,113963.6,0.01,Inside Left
+1632,60.7,56290.1,0.01,Inside Left
+1633,66.0,42704.5,0.01,Inside Left
+1634,65.0,27645.9,0.01,Inside Left
+1635,60.7,21773.8,0.01,Inside Left
+1636,63.3,18443.8,0.02,Inside Left
+1637,62.6,16796.3,0.02,Inside Left
+1638,64.8,17503.5,0.03,Inside Left
+1639,75.9,18601.5,0.03,Inside Left
+1640,65.5,33822.5,0.04,Inside Left
+1641,67.7,30894.9,0.04,Inside Left
+1642,68.7,19571.9,0.04,Inside Left
+1643,60.1,18803.9,0.04,Inside Left
+1644,63.1,21493.5,0.04,Inside Left
+1645,59.2,19918.3,0.04,Inside Left
+1646,56.8,22825.9,0.05,Inside Left
+1647,52.2,28717.7,0.05,Inside Left
+1648,56.1,81179.1,0.05,Inside Left
+1649,63.5,664117.9,0.05,Inside Left
+1650,49.8,40384.6,0.05,Inside Left
+1651,53.3,20532.1,0.05,Inside Left
+1652,62.5,15821.8,0.05,Inside Left
+1653,57.4,14429.9,0.05,Inside Left
+1654,41.4,13849.9,0.05,Inside Left
+1655,56.1,13527.9,0.06,Inside Left
+1656,48.4,14567.5,0.05,Inside Left
+1657,60.8,17666.7,0.05,Inside Left
+1658,60.1,23889.5,0.05,Inside Left
+1659,62.2,31311.6,0.05,Inside Left
+1660,59.9,34652.4,0.05,Inside Left
+1661,52.8,44235.8,0.05,Inside Left
+1662,61.2,49400.7,0.04,Inside Left
+1663,52.2,55304.6,0.03,Inside Left
+1664,60.0,61167.1,0.03,Inside Left
+1665,54.9,94893.4,0.03,Inside Left
+1666,55.3,393226.6,0.02,Inside Left
+1667,53.4,42201.3,0.02,Inside Left
+1668,47.3,23647.6,0.03,Inside Left
+1669,55.5,16212.6,0.04,Inside Left
+1670,56.2,13627.4,0.05,Inside Left
+1671,57.6,12356.8,0.05,Inside Left
+1672,68.1,11727.2,0.05,Inside Left
+1673,64.1,13281.9,0.06,Inside Left
+1674,57.1,19160.7,0.06,Inside Left
+1675,52.5,20320.7,0.06,Inside Left
+1676,50.4,18969.9,0.06,Inside Left
+1677,61.4,19929.4,0.06,Inside Left
+1678,51.0,21632.2,0.06,Inside Left
+1679,52.3,21844.6,0.06,Inside Left
+1680,50.5,19956.9,0.06,Inside Left
+1681,56.8,18044.7,0.06,Inside Left
+1682,45.5,16337.4,0.06,Inside Left
+1683,62.8,16139.9,0.06,Inside Left
+1684,64.8,14663.1,0.06,Inside Left
+1685,63.0,13163.2,0.06,Inside Left
+1686,51.6,12471.3,0.06,Inside Left
+1687,64.2,12008.1,0.06,Inside Left
+1688,26.2,13667.0,0.07,Inside Left
+1689,51.9,13693.4,0.06,Inside Left
+1690,66.2,17250.9,0.07,Inside Left
+1691,73.8,17414.8,0.07,Inside Left
+1692,67.8,19003.5,0.07,Inside Left
+1693,67.7,22591.0,0.07,Inside Left
+1694,65.1,41624.2,0.07,Inside Left
+1695,60.9,87962.0,0.07,Inside Left
+1696,54.3,17640.4,0.07,Inside Left
+1697,49.8,15962.1,0.07,Inside Left
+1698,63.1,14503.4,0.07,Inside Left
+1699,59.2,15858.0,0.07,Inside Left
+1700,60.3,16339.4,0.07,Inside Left
+1701,67.5,16896.9,0.07,Inside Left
+1702,63.4,20266.9,0.07,Inside Left
+1703,61.6,24906.8,0.07,Inside Left
+1704,69.4,33577.0,0.07,Inside Left
+1705,62.3,44966.8,0.07,Inside Left
+1706,64.0,122088.8,0.07,Inside Left
+1707,70.5,638767.9,0.06,Inside Left
+1708,64.6,93335.8,0.06,Inside Left
+1709,67.9,57601.7,0.06,Inside Left
+1710,71.3,48237.0,0.06,Inside Left
+1711,46.8,167982.6,0.06,Inside Left
+1712,41.8,51965.0,0.06,Inside Left
+1713,48.1,31634.8,0.06,Inside Left
+1714,51.2,23733.1,0.06,Inside Left
+1715,36.1,22180.9,0.06,Inside Left
+1716,39.7,21811.0,0.06,Inside Left
+1717,43.4,17873.4,0.06,Inside Left
+1718,42.5,16129.0,0.06,Inside Left
+1719,41.5,17187.8,0.06,Inside Left
+1720,39.9,19308.8,0.06,Inside Left
+1721,43.9,17915.7,0.06,Inside Left
+1722,38.5,19970.6,0.05,Inside Left
+1723,39.1,25459.1,0.05,Inside Left
+1724,44.0,44421.4,0.05,Inside Left
+1725,37.1,446755.0,0.05,Inside Left
+1726,57.1,57902.4,0.06,Inside Left
+1727,53.3,33801.8,0.06,Inside Left
+1728,76.2,20907.5,0.06,Inside Left
+1729,59.9,23491.0,0.06,Inside Left
+1730,71.0,61980.9,0.06,Inside Left
+1731,66.3,46630.7,0.06,Inside Left
+1732,64.9,48653.1,0.06,Inside Left
+1733,61.5,56868.3,0.06,Inside Left
+1734,71.4,69015.5,0.06,Inside Left
+1735,47.4,38242.4,0.06,Inside Left
+1736,71.1,28085.5,0.06,Inside Left
+1737,60.6,20456.6,0.06,Inside Left
+1738,60.0,15563.4,0.05,Inside Left
+1739,43.7,13130.8,0.05,Inside Left
+1740,53.2,11385.3,0.05,Inside Left
+1741,46.6,10354.1,0.05,Inside Left
+1742,48.5,10183.4,0.05,Inside Left
+1743,57.5,10292.2,0.05,Inside Left
+1744,35.8,10786.6,0.05,Inside Left
+1745,45.5,10855.0,0.05,Inside Left
+1746,36.4,10975.7,0.05,Inside Left
+1747,32.4,10798.1,0.05,Inside Left
+1748,33.1,10645.5,0.05,Inside Left
+1749,36.7,20719.3,0.05,Inside Left
+1750,34.8,20645.5,0.05,Inside Left
+1751,32.5,56304.9,0.05,Inside Left
+</file>
+
+</files>

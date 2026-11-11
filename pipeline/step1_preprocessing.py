@@ -54,4 +54,4 @@ def process_frame(frame, block_size=61, C_value=-15):
     kernel_smooth = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     binary_final = cv2.morphologyEx(binary_cleaned, cv2.MORPH_CLOSE, kernel_smooth)
     
-    return binary, gamma_value, mean_bright, roi_rect
+    return binary_final, gamma_value, mean_bright, roi_rect
