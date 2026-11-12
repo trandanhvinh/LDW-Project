@@ -1,4 +1,4 @@
-# 🚗 Hệ Thống Cảnh Báo Lệch Làn Đường (LDW - Lane Departure Warning)
+# Hệ Thống Cảnh Báo lệch Làn Đường (LDW - Lane Departure Warning)
 
 ![Demo Output](img/output.gif)
 
@@ -33,11 +33,16 @@ Hệ thống được chia thành 6 bước xử lý tuần tự trong thư mụ
 ---
 
 ## Yêu cầu về môi trường
+Các môi trường OpenCV sử dụng:
+```text
+numpy>=2.4.2
+opencv-python-headless>=4.13.0.92
+```
+
 1. **Clone repository về máy:**
    ```bash
    git clone https://github.com/trandanhvinh/LDW-Project
    cd <ten-repo>
-![Requirements](requirements.txt)
 
 2. **Tạo môi trường ảo**
     ```bash
@@ -47,7 +52,7 @@ Hệ thống được chia thành 6 bước xử lý tuần tự trong thư mụ
     # Kích hoạt trên Linux / macOS / Raspberry Pi:
     source venv/bin/activate
 
-2. **Cài đặt các thư viện**
+3. **Cài đặt các thư viện**
     ```bash
     pip install numpy opencv-python-headless
     pip install -r requirements.txt
