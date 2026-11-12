@@ -33,7 +33,24 @@ Hệ thống được chia thành 6 bước xử lý tuần tự trong thư mụ
 ---
 
 ## Yêu cầu về môi trường
+1. **Clone repository về máy:**
+   ```bash
+   git clone https://github.com/trandanhvinh/LDW-Project
+   cd <ten-repo>
 ![Requirements](requirements.txt)
+
+2. **Tạo môi trường ảo**
+    ```bash
+    python -m venv venv
+    # Kích hoạt trên Windows:
+    venv\Scripts\activate
+    # Kích hoạt trên Linux / macOS / Raspberry Pi:
+    source venv/bin/activate
+
+2. **Cài đặt các thư viện**
+    ```bash
+    pip install numpy opencv-python-headless
+    pip install -r requirements.txt
 
 ---
 Cần thêm các video để test, hãy truy cập vào link sau: https://drive.google.com/drive/u/0/folders/1UWewQTCyxKDvsnVRkl_zQIcmTD8WyAzz
